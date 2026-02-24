@@ -1,0 +1,64 @@
+graph TD
+    %% Styling
+    classDef client fill:#f9f,stroke:#333,stroke-width:2px;
+    classDef frontend fill:#e1f5fe,stroke:#0277bd,stroke-width:2px;
+    classDef backend fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
+    classDef database fill:#fff3e0,stroke:#ef6c00,stroke-width:2px;
+    classDef infra fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
+
+    subgraph Client_Side [Client Layer]
+        User((User))
+        Browser[Web Browser / PWA Shell]:::client
+        User -->|Interacts| Browser
+    end
+
+    subgraph Frontend [Frontend Layer]
+        Blade[Blade Templates]:::frontend
+        Bootstrap[Bootstrap 5 UI]:::frontend
+        JS[Custom JS / PWA Logic]:::frontend
+        SW[Service Worker]:::frontend
+        Manifest[Web Manifest]:::frontend
+        
+        Browser -->|Renders| Blade
+        Blade -->|Uses| Bootstrap
+        Blade -->|Executes| JS
+        Browser -->|Installs via| Manifest
+        Browser -->|Caches via| SW
+    end
+
+    subgraph Server [Backend Infrastructure]
+        WebServer[EasyPHP Web Server]:::infra
+        Browser -->|HTTP/HTTPS Requests| WebServer
+        
+        subgraph App [Laravel Application]
+            Router[Routing web.php/api.php]:::backend
+            Middleware[Auth/Sanctum Middleware]:::backend
+            
+            WebServer -->|Forwards| Router
+            Router --> Middleware
+            
+            subgraph Controllers [Controllers]
+                AuthCtrl[Auth & Register]:::backend
+                PropCtrl[Property Management<br/>Building, Unit, Tenant]:::backend
+                FinCtrl[Finance<br/>Rent, Payment]:::backend
+                OpsCtrl[Operations<br/>Maintenance, Dashboard]:::backend
+                FeatCtrl[Features<br/>Chatbot, Coins]:::backend
+            end
+            
+            Middleware --> Controllers
+            
+            subgraph Models [Eloquent Models]
+                UserMod[User & Role]:::backend
+                PropMod[Building, Unit, Tenant]:::backend
+                FinMod[Rent, Payment]:::backend
+                OpsMod[MaintenanceRequest]:::backend
+            end
+            
+            Controllers -->|Manipulates| Models
+        end
+    end
+
+    subgraph Data [Data Layer]
+        MySQL[(MySQL Database)]:::database
+        Models -->|Read/Write| MySQL
+    end

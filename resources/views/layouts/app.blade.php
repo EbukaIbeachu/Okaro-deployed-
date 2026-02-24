@@ -210,14 +210,19 @@
             z-index: 1040;
             transition: transform 0.3s ease-in-out;
             padding-top: 0;
-            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
             border-right: 1px solid rgba(255,255,255,0.05);
-            /* Hide Scrollbar but keep functionality */
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
             scrollbar-width: none; /* Firefox */
             -ms-overflow-style: none;  /* IE and Edge */
         }
-        .sidebar::-webkit-scrollbar {
-            display: none; /* Chrome, Safari and Opera */
+        .sidebar-content::-webkit-scrollbar {
+            display: none;
         }
 
         .nav-header {
@@ -253,9 +258,9 @@
         }
 
         .sidebar-user {
-            position: sticky;
-            bottom: 0;
+            /* Sticky removed in favor of flexbox */
             background: #212529;
+            flex-shrink: 0;
         }
 
         /* Main Content Wrapper */
@@ -529,7 +534,7 @@
                         <i class="bi bi-x-lg"></i>
                     </button>
                 </div>
-                <div class="pt-3">
+                <div class="pt-3 sidebar-content">
                     <ul class="nav flex-column">
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url('/') }}">

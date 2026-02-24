@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Architecture - Okaro & Associates</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            padding: 2rem;
+            background-color: #f8f9fa;
+        }
+        .diagram-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="diagram-container">
+        <h1>System Architecture Diagram</h1>
+        <div class="mermaid">
+graph TD
+    %% Styling
+    classDef client fill:#f9f,stroke:#333,stroke-width:2px;
+    classDef frontend fill:#e1f5fe,stroke:#0277bd,stroke-width:2px;
+    classDef backend fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
+    classDef database fill:#fff3e0,stroke:#ef6c00,stroke-width:2px;
+    classDef infra fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px;
+
+    subgraph Client_Side [Client Layer]
+        User((User))
+        Browser[Web Browser / PWA Shell]:::client
+        User -->|Interacts| Browser
+    end
+
+    subgraph Frontend [Frontend Layer]
+        Blade[Blade Templates]:::frontend
+        Bootstrap[Bootstrap 5 UI]:::frontend
+        JS[Custom JS / PWA Logic]:::frontend
+        SW[Service Worker]:::frontend
+        Manifest[Web Manifest]:::frontend
+        
+        Browser -->|Renders| Blade
+        Blade -->|Uses| Bootstrap
+        Blade -->|Executes| JS
+        Browser -->|Installs via| Manifest
+        Browser -->|Caches via| SW
+    end
+
+    subgraph Server [Backend Infrastructure]
+        WebServer[EasyPHP Web Server]:::infra
+        Browser -->|HTTP/HTTPS Requests| WebServer
+        
+        subgraph App [Laravel Application]
+            Router[Routing web.php/api.php]:::backend
+            Middleware[Auth/Sanctum Middleware]:::backend
+            
+            WebServer -->|Forwards| Router
+            Router --> Middleware
+            
+            subgraph Controllers [Controllers]
+                AuthCtrl[Auth & Register]:::backend
+                PropCtrl[Property Management<br/>Building, Unit, Tenant]:::backend
+                FinCtrl[Finance<br/>Rent, Payment]:::backend
+                OpsCtrl[Operations<br/>Maintenance, Dashboard]:::backend
+                FeatCtrl[Features<br/>Chatbot, Coins]:::backend
+            end
+            
+            Middleware --> Controllers
+            
+            subgraph Models [Eloquent Models]
+                UserMod[User & Role]:::backend
+                PropMod[Building, Unit, Tenant]:::backend
+                FinMod[Rent, Payment]:::backend
+                OpsMod[MaintenanceRequest]:::backend
+            end
+            
+            Controllers -->|Manipulates| Models
+        end
+    end
+
+    subgraph Data [Data Layer]
+        MySQL[(MySQL Database)]:::database
+        Models -->|Read/Write| MySQL
+    end
+        </div>
+    </div>
+    <script>
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+</body>
+</html>
