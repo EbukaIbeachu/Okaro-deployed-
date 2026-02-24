@@ -620,7 +620,7 @@
                                 <div class="small text-muted text-truncate">{{ Auth::user()->email }}</div>
                             </div>
                         </div>
-                        <form method="POST" action="{{ route('logout') }}">
+                        <form method="POST" action="{{ route('logout') }}" onsubmit="handleLogout(event)">
                             @csrf
                             <button type="submit" class="btn btn-outline-light btn-sm w-100">
                                 <i class="bi bi-box-arrow-right me-1"></i> Logout
@@ -1732,6 +1732,37 @@
             deferredInstallPrompt.userChoice.finally(function() {
                 deferredInstallPrompt = null;
                 if (debugDeferred) debugDeferred.textContent = 'Used';
+            });
+        }
+
+        function handleLogout(event) {
+            event.preventDefault();
+            const form = event.target;
+            
+            // Clear service worker caches to ensure fresh content on next login
+            if ('serviceWorker' in navigator) {
+                caches.keys().then(function(names) {
+                    for (let name of names) {
+                        caches.delete(name);
+                    }
+                });
+            }
+
+            // Use fetch to handle logout without triggering iOS PWA new window/tab
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                },
+                body: new FormData(form)
+            }).then(() => {
+                // Force navigation to root
+                window.location.href = '/';
+            }).catch((error) => {
+                console.error('Logout failed:', error);
+                // Fallback to normal submit if fetch fails
+                form.submit();
             });
         }
 
