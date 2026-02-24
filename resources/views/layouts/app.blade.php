@@ -1500,17 +1500,21 @@
                     </div>
 
                     <div class="d-block d-md-none">
-                        <p class="mb-2"><strong>Android (Chrome):</strong></p>
-                        <ol class="ps-3 mb-3">
-                            <li>Tap the Menu button <i class="bi bi-three-dots-vertical"></i> (top right).</li>
-                            <li>Tap <strong>Install App</strong> or <strong>Add to Home Screen</strong>.</li>
-                        </ol>
+                        <div class="mb-3">
+                            <p class="mb-2 fw-bold"><i class="bi bi-android2 text-success me-1"></i> Android (Chrome):</p>
+                            <ol class="ps-3 mb-0 small">
+                                <li>Tap the Menu button <i class="bi bi-three-dots-vertical"></i> (top right).</li>
+                                <li>Tap <strong>Install App</strong> or <strong>Add to Home Screen</strong>.</li>
+                            </ol>
+                        </div>
 
-                        <p class="mb-2"><strong>iOS (Safari):</strong></p>
-                        <ol class="ps-3 mb-0">
-                            <li>Tap the <strong>Share</strong> button <i class="bi bi-box-arrow-up"></i> (bottom center).</li>
-                            <li>Scroll down and tap <strong>Add to Home Screen</strong> <i class="bi bi-plus-square"></i>.</li>
-                        </ol>
+                        <div>
+                            <p class="mb-2 fw-bold"><i class="bi bi-apple text-dark me-1"></i> iOS (Safari):</p>
+                            <ol class="ps-3 mb-0 small">
+                                <li>Tap the <strong>Share</strong> button <i class="bi bi-box-arrow-up"></i> (bottom center).</li>
+                                <li>Scroll down and tap <strong>Add to Home Screen</strong> <i class="bi bi-plus-square"></i>.</li>
+                            </ol>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
