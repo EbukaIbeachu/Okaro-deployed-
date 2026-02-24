@@ -1520,16 +1520,7 @@
         </div>
     </div>
 
-    <!-- PWA Debug Overlay -->
-    <div id="pwa-debug-info" style="position: fixed; bottom: 10px; left: 10px; z-index: 9999; background: rgba(0,0,0,0.8); color: lime; padding: 10px; font-size: 10px; border-radius: 5px; max-width: 300px; display: none;">
-        <strong>PWA Debug</strong><br>
-        SW Registered: <span id="debug-sw">Checking...</span><br>
-        BeforeInstallPrompt: <span id="debug-bip">No</span><br>
-        Deferred Prompt: <span id="debug-deferred">Null</span><br>
-        Display Mode: <span id="debug-display">Browser</span><br>
-        User Agent: <span id="debug-ua"></span>
-        <button onclick="this.parentElement.style.display='none'" style="float: right; background: none; border: none; color: white;">&times;</button>
-    </div>
+
 
     <script>
         function toggleChatbot() {
@@ -1650,30 +1641,13 @@
         }
 
         let deferredInstallPrompt = null;
-        const debugInfo = document.getElementById('pwa-debug-info');
-        const debugSw = document.getElementById('debug-sw');
-        const debugBip = document.getElementById('debug-bip');
-        const debugDeferred = document.getElementById('debug-deferred');
-        const debugDisplay = document.getElementById('debug-display');
-        const debugUa = document.getElementById('debug-ua');
-
-        // Show debug info
-        if (debugInfo) {
-            debugInfo.style.display = 'block';
-            if (debugUa) debugUa.textContent = navigator.userAgent.substring(0, 50) + '...';
-        }
 
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/service-worker.js').then(function(reg) {
-                   if (debugSw) debugSw.textContent = 'Yes';
-                }).catch(function(e) {
+                navigator.serviceWorker.register('/service-worker.js').catch(function(e) {
                     console.warn('Service worker registration failed', e);
-                    if (debugSw) debugSw.textContent = 'Failed: ' + e.message;
                 });
             });
-        } else {
-            if (debugSw) debugSw.textContent = 'Not Supported';
         }
 
         function checkDisplayMode() {
@@ -1683,7 +1657,6 @@
             } else if (navigator.standalone) {
                 mode = 'Standalone (iOS)';
             }
-            if (debugDisplay) debugDisplay.textContent = mode;
             return mode;
         }
         checkDisplayMode();
@@ -1697,8 +1670,6 @@
         window.addEventListener('beforeinstallprompt', function(e) {
             e.preventDefault();
             deferredInstallPrompt = e;
-            if (debugBip) debugBip.textContent = 'Fired';
-            if (debugDeferred) debugDeferred.textContent = 'Captured';
             
             const btn = document.getElementById('pwa-install-button');
             if (btn && !window.matchMedia('(display-mode: standalone)').matches) {
@@ -1712,7 +1683,6 @@
                 btn.style.display = 'none';
             }
             deferredInstallPrompt = null;
-            if (debugDeferred) debugDeferred.textContent = 'Installed';
         });
 
         function installPwaApp() {
@@ -1731,7 +1701,6 @@
             deferredInstallPrompt.prompt();
             deferredInstallPrompt.userChoice.finally(function() {
                 deferredInstallPrompt = null;
-                if (debugDeferred) debugDeferred.textContent = 'Used';
             });
         }
 
