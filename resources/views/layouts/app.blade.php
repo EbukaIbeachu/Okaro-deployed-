@@ -1489,27 +1489,27 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>It looks like your browser doesn't support automatic installation. Here is how you can install the app manually:</p>
+                    <p class="mb-3">To install the Okaro & Associates app:</p>
                     
                     <div class="d-none d-md-block">
-                        <h6>Desktop (Chrome/Edge):</h6>
-                        <ol>
+                        <p class="mb-2"><strong>Desktop (Chrome/Edge):</strong></p>
+                        <ol class="ps-3 mb-0">
                             <li>Click the install icon <i class="bi bi-laptop"></i> in the address bar.</li>
                             <li>Or go to Menu <i class="bi bi-three-dots-vertical"></i> &gt; <strong>Install Okaro & Associates</strong>.</li>
                         </ol>
                     </div>
 
                     <div class="d-block d-md-none">
-                        <h6>iOS (Safari):</h6>
-                        <ol>
-                            <li>Tap the <strong>Share</strong> button <i class="bi bi-box-arrow-up"></i> in the toolbar.</li>
-                            <li>Scroll down and tap <strong>Add to Home Screen</strong> <i class="bi bi-plus-square"></i>.</li>
-                        </ol>
-                        
-                        <h6 class="mt-3">Android (Chrome):</h6>
-                        <ol>
-                            <li>Tap the Menu button <i class="bi bi-three-dots-vertical"></i>.</li>
+                        <p class="mb-2"><strong>Android (Chrome):</strong></p>
+                        <ol class="ps-3 mb-3">
+                            <li>Tap the Menu button <i class="bi bi-three-dots-vertical"></i> (top right).</li>
                             <li>Tap <strong>Install App</strong> or <strong>Add to Home Screen</strong>.</li>
+                        </ol>
+
+                        <p class="mb-2"><strong>iOS (Safari):</strong></p>
+                        <ol class="ps-3 mb-0">
+                            <li>Tap the <strong>Share</strong> button <i class="bi bi-box-arrow-up"></i> (bottom center).</li>
+                            <li>Scroll down and tap <strong>Add to Home Screen</strong> <i class="bi bi-plus-square"></i>.</li>
                         </ol>
                     </div>
                 </div>
@@ -1689,11 +1689,16 @@
             if (!deferredInstallPrompt) {
                 // If no deferred prompt, show manual instructions
                 const modalEl = document.getElementById('pwaInstallModal');
-                if (modalEl && typeof bootstrap !== 'undefined') {
-                    const modal = new bootstrap.Modal(modalEl);
-                    modal.show();
+                if (modalEl) {
+                    if (typeof bootstrap !== 'undefined') {
+                        const modal = new bootstrap.Modal(modalEl);
+                        modal.show();
+                    } else {
+                        // Fallback if Bootstrap isn't loaded
+                        alert('To install this app:\n\nAndroid: Tap the Menu (⋮) > Install App\niOS: Tap Share > Add to Home Screen');
+                    }
                 } else {
-                    alert('To install this app:\n\niOS: Share > Add to Home Screen\nAndroid: Menu > Install App');
+                    alert('To install this app:\n\nAndroid: Tap the Menu (⋮) > Install App\niOS: Tap Share > Add to Home Screen');
                 }
                 return;
             }
