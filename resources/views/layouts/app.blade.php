@@ -1712,6 +1712,7 @@
                 deferredInstallPrompt = null;
             });
         }
+        window.installPwaApp = installPwaApp;
 
         function handleLogout(event) {
             event.preventDefault();
@@ -1743,6 +1744,7 @@
                 form.submit();
             });
         }
+        window.handleLogout = handleLogout;
 
         (function() {
             let inactivityTime = function () {
