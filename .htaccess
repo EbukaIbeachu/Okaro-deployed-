@@ -1,0 +1,71 @@
+# ----------------------------------------------------------------------
+# Laravel Shared Hosting .htaccess
+# ----------------------------------------------------------------------
+
+# 1. Force Directory Index to index.php
+DirectoryIndex index.php
+
+# 1.5. Enable SymLinks (Required for Rewrite on some hosts)
+Options +FollowSymLinks -MultiViews
+
+<IfModule mod_rewrite.c>
+    # 2. Enable Rewrite Engine
+    RewriteEngine On
+    
+    # 3. Handle RewriteBase (Uncomment if your site is in a subfolder like /okaro)
+    RewriteBase /
+
+    # 4. Handle Authorization Header (for API)
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # 4.4. Test Rewrite Rule (Direct mapping)
+    RewriteRule ^verify-rewrite$ test_rewrite.php [L]
+
+    # 4.5. Force "chatbot" route to index.php explicitly (Debugging Rule)
+    # We are using /bot/message now to avoid the word "chatbot"
+    RewriteRule ^bot/.*$ index.php [L]
+
+    # 5. Redirect Trailing Slashes (Cosmetic)
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # 6. Front Controller (The Most Important Rule)
+    # If the file/folder doesn't exist, send request to index.php
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
+
+# ----------------------------------------------------------------------
+# Security & Access Control
+# ----------------------------------------------------------------------
+
+# 7. Explicitly ALLOW access to index.php and test files (and relax restriction)
+# Note: We are removing the restrictive FilesMatch wrapper around index.php
+# because it might be interfering with rewritten URLs on some hosts.
+# Instead, we just protect sensitive files below.
+
+
+# 8. Disable Directory Browsing (Prevents seeing file lists)
+Options -Indexes
+
+# 8.5 Allow .php files to run (Just in case)
+<FilesMatch "\.php$">
+    Order Allow,Deny
+    Allow from all
+</FilesMatch>
+
+
+# 9. Block Access to Dot Files (like .env, .git)
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# But allow .htaccess itself to be read by server (not by browser)
+<Files ".htaccess">
+    Order allow,deny
+    Deny from all
+</Files>
