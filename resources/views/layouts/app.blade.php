@@ -500,9 +500,178 @@
                 opacity: 0;
             }
         }
+
+        /* Premium Micro-Interaction Loader */
+        .okaro-loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(5px);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .okaro-loader-overlay.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .okaro-loader-svg {
+            width: 50px;
+            height: 50px;
+            overflow: visible;
+        }
+
+        /* Compact Variant */
+        .okaro-loader-svg.compact {
+            width: 24px;
+            height: 24px;
+        }
+        .okaro-loader-svg.compact .loader-circle {
+            stroke-width: 5;
+        }
+
+        /* Inline Variant */
+        .okaro-loader-inline {
+            position: relative;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: auto;
+            height: auto;
+            background: transparent;
+            backdrop-filter: none;
+            z-index: 1;
+            opacity: 1;
+            pointer-events: none;
+        }
+
+        .loader-circle {
+            fill: none;
+            stroke: url(#loader-gradient);
+            stroke-width: 4;
+            stroke-linecap: round;
+            transform-origin: center;
+            /* r=18, circumference ≈ 113.1 */
+            stroke-dasharray: 114; 
+            stroke-dashoffset: 114;
+            transform: rotate(-90deg);
+        }
+
+        .loader-check {
+            fill: none;
+            stroke: url(#loader-gradient);
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-dasharray: 30;
+            stroke-dashoffset: 30;
+            opacity: 0;
+        }
+
+        .loader-error-x {
+            fill: none;
+            stroke: #dc3545;
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-dasharray: 30;
+            stroke-dashoffset: 30;
+            opacity: 0;
+        }
+
+        /* State: Loading */
+        .state-loading .loader-circle {
+            animation: loader-spin 1s linear infinite;
+            stroke-dashoffset: 80; /* Keep a segment visible */
+        }
+
+        /* State: Completing */
+        .state-completing .loader-circle {
+            animation: loader-complete-ring 0.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+
+        .state-completing .loader-check {
+            opacity: 1;
+            animation: loader-draw-check 0.2s 0.15s ease-out forwards;
+        }
+
+        .state-completing .okaro-loader-svg {
+            animation: loader-pulse 0.2s 0.2s ease-out forwards;
+        }
+
+        /* State: Error */
+        .state-error .loader-circle {
+            stroke: #dc3545;
+            stroke-dashoffset: 0;
+            transition: stroke 0.2s, stroke-dashoffset 0.2s;
+        }
+
+        .state-error .loader-error-x {
+            opacity: 1;
+            animation: loader-draw-error 0.2s 0.1s ease-out forwards;
+        }
+
+        @keyframes loader-spin {
+            0% { transform: rotate(-90deg); stroke-dashoffset: 114; }
+            50% { stroke-dashoffset: 30; }
+            100% { transform: rotate(270deg); stroke-dashoffset: 114; }
+        }
+
+        @keyframes loader-complete-ring {
+            0% { stroke-dashoffset: 80; transform: rotate(-90deg); }
+            100% { stroke-dashoffset: 0; transform: rotate(-90deg); }
+        }
+
+        @keyframes loader-draw-check {
+            0% { stroke-dashoffset: 30; }
+            100% { stroke-dashoffset: 0; }
+        }
+
+        @keyframes loader-draw-error {
+            0% { stroke-dashoffset: 30; }
+            100% { stroke-dashoffset: 0; }
+        }
+
+        @keyframes loader-pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .loader-circle, .loader-check, .okaro-loader-svg {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- Premium Loader HTML -->
+    <div id="okaro-loader-overlay" class="okaro-loader-overlay" role="status" aria-live="polite" aria-busy="false">
+        <div class="okaro-loader-container">
+            <svg class="okaro-loader-svg" viewBox="0 0 44 44">
+            <defs>
+                <linearGradient id="loader-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#6C3BFF" />
+                    <stop offset="100%" stop-color="#8A5CFF" />
+                </linearGradient>
+            </defs>
+            <circle class="loader-circle" cx="22" cy="22" r="18"></circle>
+                <path class="loader-check" d="M 14 22 L 20 28 L 30 16"></path>
+                <path class="loader-error-x" d="M 14 14 L 30 30 M 30 14 L 14 30"></path>
+            </svg>
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
     
     <div class="container-fluid p-0">
@@ -648,7 +817,7 @@
                     
                     @if(isset($globalAnnouncementCount) && $globalAnnouncementCount > 0)
                         <div class="ms-auto me-3 d-flex align-items-center">
-                            <span class="badge rounded-pill bg-danger announcement-badge">
+                            <span id="announcement-badge-desktop" class="badge rounded-pill bg-danger announcement-badge">
                                 <i class="bi bi-megaphone-fill me-1"></i>{{ $globalAnnouncementCount }}
                             </span>
                         </div>
@@ -665,7 +834,7 @@
 
                     <div class="d-flex align-items-center ms-auto">
                         @if(isset($globalAnnouncementCount) && $globalAnnouncementCount > 0)
-                            <span class="badge rounded-pill bg-danger me-2 announcement-badge">
+                            <span id="announcement-badge-mobile" class="badge rounded-pill bg-danger me-2 announcement-badge">
                                 <i class="bi bi-megaphone-fill me-1"></i>{{ $globalAnnouncementCount }}
                             </span>
                         @endif
@@ -1204,17 +1373,24 @@
                     ? [
                         { element: '.mobile-header', popover: { title: 'Header', description: 'Open the sidebar using the menu button.', side: 'bottom' } },
                         { element: '#sidebarToggleBtn', popover: { title: 'Menu', description: 'Tap to open app navigation.', side: 'bottom' } },
-                        { element: '.announcement-badge', popover: { title: 'Announcements', description: 'See new notices for your properties or tenancy.', side: 'bottom' } },
+                        { element: '#announcement-badge-mobile', popover: { title: 'Announcements', description: 'See new notices for your properties or tenancy.', side: 'left' } },
                         { element: '#coin-wallet-mobile', popover: { title: 'Coin Wallet', description: 'Your engagement coins appear here as you interact.', side: 'bottom' } },
                         { element: '#chatbot-toggle', popover: { title: 'AI Assistant', description: 'Chat with the Okaro assistant for guidance.', side: 'top' } },
-                        { element: '.bi-person-circle', popover: { title: 'Profile', description: 'View your profile info here.', side: 'top' } },
+                        { element: '.sidebar-user', popover: { title: 'Profile', description: 'View your profile info here.', side: 'top' }, onHighlightStarted: (element) => {
+                            const sidebar = document.getElementById('sidebarMenu');
+                            const overlay = document.getElementById('sidebarOverlay');
+                            if (sidebar && !sidebar.classList.contains('show')) {
+                                sidebar.classList.add('show');
+                                overlay.classList.add('show');
+                            }
+                        }},
                       ]
                     : [
                         { element: '#sidebarMenu', popover: { title: 'Navigation', description: 'Use this sidebar to access different sections of the application.', side: 'right' } },
-                        { element: '.announcement-badge', popover: { title: 'Announcements', description: 'Unread announcements for your role are highlighted here.', side: 'bottom' } },
+                        { element: '#announcement-badge-desktop', popover: { title: 'Announcements', description: 'Unread announcements for your role are highlighted here.', side: 'bottom' } },
                         { element: '#coin-wallet-desktop', popover: { title: 'Coin Wallet', description: 'Track your engagement coins as you tap and explore.', side: 'bottom' } },
                         { element: '#chatbot-toggle', popover: { title: 'AI Assistant', description: 'Open the Okaro assistant to ask questions anytime.', side: 'top' } },
-                        { element: '.bi-person-circle', popover: { title: 'User Profile', description: 'View your profile info here.', side: 'top' } },
+                        { element: '.sidebar-user', popover: { title: 'User Profile', description: 'View your profile info here.', side: 'right' } },
                       ];
 
                 // Page-Specific Steps Definition
@@ -1414,6 +1590,117 @@
                 }
             });
         }
+
+        /**
+         * Premium Micro-Interaction Loader (Singleton)
+         */
+        class PremiumLoader {
+            constructor() {
+                if (PremiumLoader.instance) return PremiumLoader.instance;
+                this.overlay = document.getElementById('okaro-loader-overlay');
+                this.isVisible = false;
+                this.isPending = false;
+                this.startTime = 0;
+                this.minDisplayTime = 400; // Minimum visibility if shown
+                this.delay = 150; // Delay before showing
+                this.timer = null;
+                PremiumLoader.instance = this;
+            }
+
+            show() {
+                if (this.isVisible || this.isPending) return;
+                this.reset();
+                this.isPending = true;
+                this.timer = setTimeout(() => {
+                    this.isPending = false;
+                    this.startTime = Date.now();
+                    this.overlay.classList.add('visible', 'state-loading');
+                    this.overlay.setAttribute('aria-busy', 'true');
+                    this.isVisible = true;
+                }, this.delay);
+            }
+
+            async hide() {
+                if (this.isPending) {
+                    clearTimeout(this.timer);
+                    this.isPending = false;
+                    this.reset();
+                    return;
+                }
+
+                if (!this.isVisible) return;
+                const elapsed = Date.now() - this.startTime;
+                const remaining = Math.max(0, this.minDisplayTime - elapsed);
+                
+                if (remaining > 0) {
+                    await new Promise(resolve => setTimeout(resolve, remaining));
+                }
+
+                this.overlay.style.opacity = '0';
+                
+                await new Promise(resolve => {
+                    setTimeout(() => {
+                        this.overlay.classList.remove('visible');
+                        this.overlay.style.opacity = '';
+                        this.reset();
+                        this.isVisible = false;
+                        resolve();
+                    }, 200);
+                });
+            }
+
+            async complete() {
+                if (this.isPending) {
+                    clearTimeout(this.timer);
+                    this.isPending = false;
+                    this.reset();
+                    return;
+                }
+
+                if (!this.isVisible) return;
+                this.overlay.classList.remove('state-loading');
+                this.overlay.classList.add('state-completing');
+                
+                const hiddenText = this.overlay.querySelector('.visually-hidden');
+                if (hiddenText) hiddenText.textContent = 'Completed';
+                
+                // Wait for animation sequence
+                await new Promise(resolve => setTimeout(resolve, 450));
+                await this.hide();
+            }
+
+            async error() {
+                if (this.isPending) {
+                    // Force show error even if pending? 
+                    // Usually errors should always be visible.
+                    clearTimeout(this.timer);
+                    this.isPending = false;
+                    this.startTime = Date.now();
+                    this.overlay.classList.add('visible');
+                    this.isVisible = true;
+                }
+
+                if (!this.isVisible) return;
+                this.overlay.classList.remove('state-loading');
+                this.overlay.classList.add('state-error');
+                
+                const hiddenText = this.overlay.querySelector('.visually-hidden');
+                if (hiddenText) hiddenText.textContent = 'Error occurred';
+
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                await this.hide();
+            }
+
+            reset() {
+                this.overlay.classList.remove('state-loading', 'state-completing', 'state-error');
+                this.overlay.setAttribute('aria-busy', 'false');
+                const hiddenText = this.overlay.querySelector('.visually-hidden');
+                if (hiddenText) hiddenText.textContent = 'Loading...';
+            }
+        }
+
+        // Global Instance
+        window.Loader = new PremiumLoader();
     </script>
     @stack('scripts')
 
@@ -1480,7 +1767,7 @@
         </div>
     </div>
 
-    <button id="pwa-install-button" onclick="installPwaApp()" class="btn btn-primary shadow-sm" style="position: fixed; bottom: 100px; right: 20px; z-index: 1000; display: none; align-items: center; gap: 6px; border-radius: 999px;">
+    <button id="pwa-install-button" onclick="installPwaApp()" class="btn btn-primary shadow-sm" style="position: fixed; bottom: 20px; left: 20px; z-index: 1000; display: none; align-items: center; gap: 6px; border-radius: 999px;">
         <i class="bi bi-download"></i>
         <span>Install App</span>
     </button>
@@ -1499,24 +1786,24 @@
                     <div class="d-none d-md-block">
                         <p class="mb-2"><strong>Desktop (Chrome/Edge):</strong></p>
                         <ol class="ps-3 mb-0">
-                            <li>Click the install icon <i class="bi bi-laptop"></i> in the address bar.</li>
+                            <li class="mb-2">Click the install icon <i class="bi bi-laptop"></i> in the address bar.</li>
                             <li>Or go to Menu <i class="bi bi-three-dots-vertical"></i> &gt; <strong>Install Okaro & Associates</strong>.</li>
                         </ol>
                     </div>
 
                     <div class="d-block d-md-none">
                         <div class="mb-3">
-                            <p class="mb-2 fw-bold"><i class="bi bi-android2 text-success me-1"></i> Android (Chrome):</p>
-                            <ol class="ps-3 mb-0 small">
-                                <li>Tap the Menu button <i class="bi bi-three-dots-vertical"></i> (top right).</li>
+                            <p class="mb-2 fw-bold text-dark"><i class="bi bi-android2 text-success me-1"></i> Android (Chrome):</p>
+                            <ol class="ps-3 mb-0 small text-dark">
+                                <li class="mb-1">Tap the Menu button <i class="bi bi-three-dots-vertical"></i> (top right).</li>
                                 <li>Tap <strong>Install App</strong> or <strong>Add to Home Screen</strong>.</li>
                             </ol>
                         </div>
 
                         <div>
-                            <p class="mb-2 fw-bold"><i class="bi bi-apple text-dark me-1"></i> iOS (Safari):</p>
-                            <ol class="ps-3 mb-0 small">
-                                <li>Tap the <strong>Share</strong> button <i class="bi bi-box-arrow-up"></i> (bottom center).</li>
+                            <p class="mb-2 fw-bold text-dark"><i class="bi bi-apple text-dark me-1"></i> iOS (Safari):</p>
+                            <ol class="ps-3 mb-0 small text-dark">
+                                <li class="mb-1">Tap the <strong>Share</strong> button <i class="bi bi-box-arrow-up"></i> (bottom center).</li>
                                 <li>Scroll down and tap <strong>Add to Home Screen</strong> <i class="bi bi-plus-square"></i>.</li>
                             </ol>
                         </div>
@@ -1694,14 +1981,30 @@
             deferredInstallPrompt = null;
         });
 
-        function installPwaApp() {
+        async function installPwaApp() {
+            // Show loader to indicate processing
+            if (window.Loader) window.Loader.show();
+            
+            // Artificial delay to ensure loader is seen and interaction feels processed
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Hide loader before attempting any UI changes
+            if (window.Loader) await window.Loader.hide();
+
             if (!deferredInstallPrompt) {
                 // If no deferred prompt, show manual instructions
                 const modalEl = document.getElementById('pwaInstallModal');
+                
                 if (modalEl) {
                     if (typeof bootstrap !== 'undefined') {
-                        const modal = new bootstrap.Modal(modalEl);
-                        modal.show();
+                        try {
+                            const modal = new bootstrap.Modal(modalEl);
+                            modal.show();
+                        } catch (e) {
+                            console.error('Bootstrap Modal Error:', e);
+                            // Fallback alert if modal fails
+                            alert('To install this app:\n\nAndroid: Tap the Menu (⋮) > Install App\niOS: Tap Share > Add to Home Screen');
+                        }
                     } else {
                         // Fallback if Bootstrap isn't loaded
                         alert('To install this app:\n\nAndroid: Tap the Menu (⋮) > Install App\niOS: Tap Share > Add to Home Screen');

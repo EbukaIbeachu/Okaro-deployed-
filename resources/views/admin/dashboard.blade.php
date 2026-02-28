@@ -49,11 +49,13 @@
                     <div>
                         <h6 class="card-title text-uppercase small opacity-75 fw-bold">YTD Revenue</h6>
                         @php
-                            $formattedRevenue = number_format($stats['paid_total'], 0);
+                            // Format exact revenue with 2 decimal places
+                            $formattedRevenue = number_format($stats['paid_total'], 2);
                             $revLen = strlen($formattedRevenue);
                             // Base size display-6, reduces as length increases
                             $revClass = 'display-6';
-                            if ($revLen > 9) $revClass = 'fs-2';
+                            if ($revLen > 11) $revClass = 'fs-3'; // Adjust size for longer exact amounts
+                            elseif ($revLen > 9) $revClass = 'fs-2';
                         @endphp
                         <p class="card-text {{ $revClass }} fw-bold mb-0">₦{{ $formattedRevenue }}</p>
                     </div>

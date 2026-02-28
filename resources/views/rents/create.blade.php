@@ -120,9 +120,11 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Building Filter Logic
+        // Elements
         const buildingSelect = document.getElementById('building_filter');
         const unitSelect = document.getElementById('unit_id');
+        const tenantSelect = document.getElementById('tenant_id');
+        const tenantSearch = document.getElementById('tenant_search');
         
         // Create a reliable source of truth for all units using a JavaScript array
         const allUnits = [
@@ -177,7 +179,6 @@
         });
 
         // Tenant Filtering Logic
-        const tenantSearch = document.getElementById('tenant_search');
         // Store original options to ensure we can always restore them
         const originalTenantOptions = Array.from(tenantSelect.options);
 
@@ -242,7 +243,6 @@
         }
 
         // Auto-select Unit when Tenant is selected
-        const tenantSelect = document.getElementById('tenant_id');
         tenantSelect.addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
             const assignedUnitId = selectedOption.getAttribute('data-unit-id');
