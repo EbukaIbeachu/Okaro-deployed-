@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use App\Models\User;
 
 class AuthController extends Controller
 {
@@ -22,8 +20,9 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt($credentials)) {
-            if (!Auth::user()->is_active) {
+            if (! Auth::user()->is_active) {
                 Auth::logout();
+
                 return back()->withErrors([
                     'email' => 'Your account is pending admin approval.',
                 ])->onlyInput('email');
@@ -46,6 +45,6 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect()->route('login');
     }
 }

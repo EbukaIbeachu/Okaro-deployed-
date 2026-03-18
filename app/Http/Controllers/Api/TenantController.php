@@ -4,16 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Payment;
-use App\Models\Rent;
 
 class TenantController extends Controller
 {
     public function dashboard(Request $request)
     {
         $user = $request->user();
-        
-        if (!$user->isTenant() || !$user->tenant) {
+
+        if (! $user->isTenant() || ! $user->tenant) {
             return response()->json(['message' => 'Unauthorized or Tenant profile not found'], 403);
         }
 
@@ -33,7 +31,7 @@ class TenantController extends Controller
     public function payments(Request $request)
     {
         $user = $request->user();
-        if (!$user->isTenant() || !$user->tenant) {
+        if (! $user->isTenant() || ! $user->tenant) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 

@@ -10,9 +10,10 @@ class RoleController extends Controller
     public function __construct()
     {
         $this->middleware(function ($request, $next) {
-            if (!auth()->user()->isAdmin()) {
+            if (! auth()->user()->isAdmin()) {
                 abort(403, 'Unauthorized action.');
             }
+
             return $next($request);
         });
     }
@@ -20,6 +21,7 @@ class RoleController extends Controller
     public function index()
     {
         $roles = Role::all();
+
         return view('roles.index', compact('roles'));
     }
 
@@ -53,7 +55,7 @@ class RoleController extends Controller
     public function update(Request $request, Role $role)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:50|unique:roles,name,' . $role->id,
+            'name' => 'required|string|max:50|unique:roles,name,'.$role->id,
             'description' => 'nullable|string',
         ]);
 
@@ -67,7 +69,7 @@ class RoleController extends Controller
         if ($role->users()->exists()) {
             return back()->with('error', 'Cannot delete role assigned to users.');
         }
-        
+
         $role->delete();
 
         return redirect()->route('roles.index')->with('success', 'Role deleted successfully.');

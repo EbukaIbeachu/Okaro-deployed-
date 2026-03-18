@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\MaintenanceRequest;
-use App\Models\Unit;
 use App\Models\Tenant;
+use App\Models\Unit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -13,7 +13,7 @@ class MaintenanceRequestController extends Controller
     public function index()
     {
         $user = Auth::user();
-        
+
         if ($user->isAdmin() || $user->isManager()) {
             $requests = MaintenanceRequest::with(['unit.building', 'tenant', 'creator'])->latest()->paginate(10);
         } else {
@@ -63,13 +63,13 @@ class MaintenanceRequestController extends Controller
 
         $validated = $request->validate($rules);
 
-        if (!($user->isAdmin() || $user->isManager())) {
+        if (! ($user->isAdmin() || $user->isManager())) {
             $tenant = Tenant::where('user_id', $user->id)->firstOrFail();
             $validated['tenant_id'] = $tenant->id;
             $validated['unit_id'] = $tenant->unit_id; // Assuming tenant is assigned to a unit
-            if (!$validated['unit_id']) {
-                 // Fallback if tenant not currently in a unit (edge case)
-                 return back()->with('error', 'You are not currently assigned to a unit.');
+            if (! $validated['unit_id']) {
+                // Fallback if tenant not currently in a unit (edge case)
+                return back()->with('error', 'You are not currently assigned to a unit.');
             }
         }
 
@@ -83,6 +83,7 @@ class MaintenanceRequestController extends Controller
     public function show(MaintenanceRequest $maintenance)
     {
         $maintenance->load(['unit.building', 'tenant']);
+
         return view('maintenance.show', compact('maintenance'));
     }
 
@@ -90,10 +91,10 @@ class MaintenanceRequestController extends Controller
     {
         // Only admin/manager usually edits, or maybe tenant can edit if pending?
         // For simplicity, let's allow admin/manager to edit details/status.
-        
+
         $units = Unit::with('building')->get();
         $tenants = Tenant::active()->get();
-        
+
         return view('maintenance.edit', compact('maintenance', 'units', 'tenants'));
     }
 
@@ -121,6 +122,7 @@ class MaintenanceRequestController extends Controller
     public function destroy(MaintenanceRequest $maintenance)
     {
         $maintenance->delete();
+
         return redirect()->route('maintenance.index')->with('success', 'Maintenance request deleted successfully.');
     }
 }

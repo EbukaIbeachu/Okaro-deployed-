@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Building;
 use App\Models\Tenant;
 use App\Models\Unit;
 use App\Models\User;
@@ -13,9 +14,10 @@ class TenantController extends Controller
     public function __construct()
     {
         $this->middleware(function ($request, $next) {
-            if (!auth()->user()->isAdmin() && !auth()->user()->isManager()) {
+            if (! auth()->user()->isAdmin() && ! auth()->user()->isManager()) {
                 abort(403, 'Unauthorized action.');
             }
+
             return $next($request);
         });
     }
@@ -29,6 +31,7 @@ class TenantController extends Controller
             });
         }
         $tenants = $query->paginate(15);
+
         return view('tenants.index', compact('tenants'));
     }
 
@@ -36,9 +39,10 @@ class TenantController extends Controller
     {
         // Only show units that are available or currently have no active tenant?
         // For simplicity, show all units, but maybe mark occupied ones.
-        $buildings = \App\Models\Building::all();
+        $buildings = Building::all();
         $units = Unit::with('building')->orderBy('building_id')->orderBy('unit_number')->get();
         $selectedUnitId = $request->query('unit_id');
+
         return view('tenants.create', compact('units', 'buildings', 'selectedUnitId'));
     }
 
@@ -58,28 +62,28 @@ class TenantController extends Controller
 
         // Find unit by building_id and unit_number with flexible matching
         $inputUnitNumber = trim($validated['unit_number']);
-        
+
         // Get all units for this building to perform flexible matching
         $buildingUnits = Unit::where('building_id', $validated['building_id'])->get();
-        
+
         $unit = $buildingUnits->first(function ($u) use ($inputUnitNumber) {
             // Case-insensitive comparison of trimmed values
             return strcasecmp(trim($u->unit_number), $inputUnitNumber) === 0;
         });
 
-        if (!$unit) {
+        if (! $unit) {
             // Check if building has any units at all
             if ($buildingUnits->isEmpty()) {
                 return back()->withInput()->withErrors(['unit_number' => 'This building has 0 units in the system. You must create the unit (e.g., "101") in the "Units" section before assigning a tenant to it.']);
             }
-            
+
             // Construct a helpful error message
             $availableExamples = $buildingUnits->take(3)->pluck('unit_number')->implode(', ');
-            $errorMsg = "Unit '$inputUnitNumber' not found in selected building. Available units include: $availableExamples" . ($buildingUnits->count() > 3 ? ", etc." : ".");
-            
+            $errorMsg = "Unit '$inputUnitNumber' not found in selected building. Available units include: $availableExamples".($buildingUnits->count() > 3 ? ', etc.' : '.');
+
             return back()->withInput()->withErrors(['unit_number' => $errorMsg]);
         }
-        
+
         $validated['unit_id'] = $unit->id;
         unset($validated['unit_number'], $validated['building_id']);
 
@@ -132,12 +136,14 @@ class TenantController extends Controller
                 abort(403, 'Unauthorized action.');
             }
         }
+
         return view('tenants.show', compact('tenant'));
     }
 
     public function edit(Tenant $tenant)
     {
         $units = Unit::with('building')->get();
+
         return view('tenants.edit', compact('tenant', 'units'));
     }
 
@@ -171,14 +177,14 @@ class TenantController extends Controller
             // Make old unit AVAILABLE (if no other active tenants)
             // Ideally we check if anyone else is there, but usually 1 unit = 1 tenant/family
             Unit::where('id', $oldUnitId)->update(['status' => 'AVAILABLE']);
-            
+
             // Make new unit OCCUPIED
             if ($tenant->active) {
                 Unit::where('id', $tenant->unit_id)->update(['status' => 'OCCUPIED']);
             }
-        } elseif (!$tenant->active) {
-             // If tenant marked inactive, free up the unit
-             Unit::where('id', $tenant->unit_id)->update(['status' => 'AVAILABLE']);
+        } elseif (! $tenant->active) {
+            // If tenant marked inactive, free up the unit
+            Unit::where('id', $tenant->unit_id)->update(['status' => 'AVAILABLE']);
         }
 
         return redirect()->route('tenants.index')->with('success', 'Tenant updated successfully.');
@@ -186,13 +192,13 @@ class TenantController extends Controller
 
     public function destroy(Tenant $tenant)
     {
-        if (!auth()->user()->isAdmin()) {
+        if (! auth()->user()->isAdmin()) {
             return back()->with('error', 'Unauthorized action. Only admins can delete tenants.');
         }
 
         // Check for payments history
         if ($tenant->payments()->exists()) {
-             return back()->with('error', 'Cannot delete tenant with payment history.');
+            return back()->with('error', 'Cannot delete tenant with payment history.');
         }
 
         $unitId = $tenant->unit_id;

@@ -14,8 +14,12 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
-    <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+    <!-- Manifest Updated: {{ date('Y-m-d H:i:s') }} -->
+    <link rel="manifest" href="/manifest.webmanifest">
     <meta name="theme-color" content="#7c3aed">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://okaroassociates.xo.je/icons/icon-192.png">
 
     <style>
         @media (max-width: 768px) {
@@ -206,14 +210,19 @@
             z-index: 1040;
             transition: transform 0.3s ease-in-out;
             padding-top: 0;
-            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
             border-right: 1px solid rgba(255,255,255,0.05);
-            /* Hide Scrollbar but keep functionality */
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
             scrollbar-width: none; /* Firefox */
             -ms-overflow-style: none;  /* IE and Edge */
         }
-        .sidebar::-webkit-scrollbar {
-            display: none; /* Chrome, Safari and Opera */
+        .sidebar-content::-webkit-scrollbar {
+            display: none;
         }
 
         .nav-header {
@@ -247,11 +256,21 @@
             padding: 0.75rem 1rem 0.5rem;
             font-weight: 700;
         }
+        @auth
+        @if(Auth::user()->isAdmin())
+        .sidebar .nav-link {
+            padding: 0.55rem 1.25rem;
+        }
+        .sidebar .nav-item-header {
+            padding: 0.5rem 1rem 0.25rem;
+        }
+        @endif
+        @endauth
 
         .sidebar-user {
-            position: sticky;
-            bottom: 0;
+            /* Sticky removed in favor of flexbox */
             background: #212529;
+            flex-shrink: 0;
         }
 
         /* Main Content Wrapper */
@@ -491,9 +510,178 @@
                 opacity: 0;
             }
         }
+
+        /* Premium Micro-Interaction Loader */
+        .okaro-loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(5px);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .okaro-loader-overlay.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .okaro-loader-svg {
+            width: 50px;
+            height: 50px;
+            overflow: visible;
+        }
+
+        /* Compact Variant */
+        .okaro-loader-svg.compact {
+            width: 24px;
+            height: 24px;
+        }
+        .okaro-loader-svg.compact .loader-circle {
+            stroke-width: 5;
+        }
+
+        /* Inline Variant */
+        .okaro-loader-inline {
+            position: relative;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: auto;
+            height: auto;
+            background: transparent;
+            backdrop-filter: none;
+            z-index: 1;
+            opacity: 1;
+            pointer-events: none;
+        }
+
+        .loader-circle {
+            fill: none;
+            stroke: url(#loader-gradient);
+            stroke-width: 4;
+            stroke-linecap: round;
+            transform-origin: center;
+            /* r=18, circumference ≈ 113.1 */
+            stroke-dasharray: 114; 
+            stroke-dashoffset: 114;
+            transform: rotate(-90deg);
+        }
+
+        .loader-check {
+            fill: none;
+            stroke: url(#loader-gradient);
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-dasharray: 30;
+            stroke-dashoffset: 30;
+            opacity: 0;
+        }
+
+        .loader-error-x {
+            fill: none;
+            stroke: #dc3545;
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-dasharray: 30;
+            stroke-dashoffset: 30;
+            opacity: 0;
+        }
+
+        /* State: Loading */
+        .state-loading .loader-circle {
+            animation: loader-spin 1s linear infinite;
+            stroke-dashoffset: 80; /* Keep a segment visible */
+        }
+
+        /* State: Completing */
+        .state-completing .loader-circle {
+            animation: loader-complete-ring 0.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+
+        .state-completing .loader-check {
+            opacity: 1;
+            animation: loader-draw-check 0.2s 0.15s ease-out forwards;
+        }
+
+        .state-completing .okaro-loader-svg {
+            animation: loader-pulse 0.2s 0.2s ease-out forwards;
+        }
+
+        /* State: Error */
+        .state-error .loader-circle {
+            stroke: #dc3545;
+            stroke-dashoffset: 0;
+            transition: stroke 0.2s, stroke-dashoffset 0.2s;
+        }
+
+        .state-error .loader-error-x {
+            opacity: 1;
+            animation: loader-draw-error 0.2s 0.1s ease-out forwards;
+        }
+
+        @keyframes loader-spin {
+            0% { transform: rotate(-90deg); stroke-dashoffset: 114; }
+            50% { stroke-dashoffset: 30; }
+            100% { transform: rotate(270deg); stroke-dashoffset: 114; }
+        }
+
+        @keyframes loader-complete-ring {
+            0% { stroke-dashoffset: 80; transform: rotate(-90deg); }
+            100% { stroke-dashoffset: 0; transform: rotate(-90deg); }
+        }
+
+        @keyframes loader-draw-check {
+            0% { stroke-dashoffset: 30; }
+            100% { stroke-dashoffset: 0; }
+        }
+
+        @keyframes loader-draw-error {
+            0% { stroke-dashoffset: 30; }
+            100% { stroke-dashoffset: 0; }
+        }
+
+        @keyframes loader-pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .loader-circle, .loader-check, .okaro-loader-svg {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- Premium Loader HTML -->
+    <div id="okaro-loader-overlay" class="okaro-loader-overlay" role="status" aria-live="polite" aria-busy="false">
+        <div class="okaro-loader-container">
+            <svg class="okaro-loader-svg" viewBox="0 0 44 44">
+            <defs>
+                <linearGradient id="loader-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#6C3BFF" />
+                    <stop offset="100%" stop-color="#8A5CFF" />
+                </linearGradient>
+            </defs>
+            <circle class="loader-circle" cx="22" cy="22" r="18"></circle>
+                <path class="loader-check" d="M 14 22 L 20 28 L 30 16"></path>
+                <path class="loader-error-x" d="M 14 14 L 30 30 M 30 14 L 14 30"></path>
+            </svg>
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
     
     <div class="container-fluid p-0">
@@ -525,7 +713,7 @@
                         <i class="bi bi-x-lg"></i>
                     </button>
                 </div>
-                <div class="pt-3">
+                <div class="pt-3 sidebar-content">
                     <ul class="nav flex-column">
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url('/') }}">
@@ -616,7 +804,7 @@
                                 <div class="small text-muted text-truncate">{{ Auth::user()->email }}</div>
                             </div>
                         </div>
-                        <form method="POST" action="{{ route('logout') }}">
+                        <form method="POST" action="{{ route('logout') }}" onsubmit="handleLogout(event)">
                             @csrf
                             <button type="submit" class="btn btn-outline-light btn-sm w-100">
                                 <i class="bi bi-box-arrow-right me-1"></i> Logout
@@ -722,10 +910,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const syncEnabled = {{ Auth::check() ? 'true' : 'false' }};
-            let coins = 0;
-            if (!syncEnabled) {
-                coins = parseFloat(localStorage.getItem('okaro_coins') || '0');
-            }
+            let coins = parseFloat(localStorage.getItem('okaro_coins') || '0');
             let tapCount = parseInt(localStorage.getItem('okaro_taps') || '0');
             let sessionTapCount = 0;
             let streakCount = 0;
@@ -1405,6 +1590,113 @@
                 }
             });
         }
+
+        /**
+         * Premium Micro-Interaction Loader (Singleton)
+         */
+        class PremiumLoader {
+            constructor() {
+                if (PremiumLoader.instance) return PremiumLoader.instance;
+                this.overlay = document.getElementById('okaro-loader-overlay');
+                this.isVisible = false;
+                this.isPending = false;
+                this.startTime = 0;
+                this.minDisplayTime = 400; // Minimum visibility if shown
+                this.delay = 150; // Delay before showing
+                this.timer = null;
+                PremiumLoader.instance = this;
+            }
+
+            show() {
+                if (this.isVisible || this.isPending) return;
+                this.reset();
+                this.isPending = true;
+                this.timer = setTimeout(() => {
+                    this.isPending = false;
+                    this.startTime = Date.now();
+                    this.overlay.classList.add('visible', 'state-loading');
+                    this.overlay.setAttribute('aria-busy', 'true');
+                    this.isVisible = true;
+                }, this.delay);
+            }
+
+            async hide() {
+                if (this.isPending) {
+                    clearTimeout(this.timer);
+                    this.isPending = false;
+                    this.reset();
+                    return;
+                }
+
+                if (!this.isVisible) return;
+                const elapsed = Date.now() - this.startTime;
+                const remaining = Math.max(0, this.minDisplayTime - elapsed);
+                
+                if (remaining > 0) {
+                    await new Promise(resolve => setTimeout(resolve, remaining));
+                }
+
+                this.overlay.style.opacity = '0';
+                setTimeout(() => {
+                    this.overlay.classList.remove('visible');
+                    this.overlay.style.opacity = '';
+                    this.reset();
+                    this.isVisible = false;
+                }, 200);
+            }
+
+            async complete() {
+                if (this.isPending) {
+                    clearTimeout(this.timer);
+                    this.isPending = false;
+                    this.reset();
+                    return;
+                }
+
+                if (!this.isVisible) return;
+                this.overlay.classList.remove('state-loading');
+                this.overlay.classList.add('state-completing');
+                
+                const hiddenText = this.overlay.querySelector('.visually-hidden');
+                if (hiddenText) hiddenText.textContent = 'Completed';
+                
+                // Wait for animation sequence
+                await new Promise(resolve => setTimeout(resolve, 450));
+                await this.hide();
+            }
+
+            async error() {
+                if (this.isPending) {
+                    // Force show error even if pending? 
+                    // Usually errors should always be visible.
+                    clearTimeout(this.timer);
+                    this.isPending = false;
+                    this.startTime = Date.now();
+                    this.overlay.classList.add('visible');
+                    this.isVisible = true;
+                }
+
+                if (!this.isVisible) return;
+                this.overlay.classList.remove('state-loading');
+                this.overlay.classList.add('state-error');
+                
+                const hiddenText = this.overlay.querySelector('.visually-hidden');
+                if (hiddenText) hiddenText.textContent = 'Error occurred';
+
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                await this.hide();
+            }
+
+            reset() {
+                this.overlay.classList.remove('state-loading', 'state-completing', 'state-error');
+                this.overlay.setAttribute('aria-busy', 'false');
+                const hiddenText = this.overlay.querySelector('.visually-hidden');
+                if (hiddenText) hiddenText.textContent = 'Loading...';
+            }
+        }
+
+        // Global Instance
+        window.Loader = new PremiumLoader();
     </script>
     @stack('scripts')
 
@@ -1476,6 +1768,52 @@
         <span>Install App</span>
     </button>
 
+    <!-- PWA Install Instructions Modal -->
+    <div class="modal fade" id="pwaInstallModal" tabindex="-1" aria-labelledby="pwaInstallModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pwaInstallModalLabel">Install Okaro App</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-3">To install the Okaro & Associates app:</p>
+                    
+                    <div class="d-none d-md-block">
+                        <p class="mb-2"><strong>Desktop (Chrome/Edge):</strong></p>
+                        <ol class="ps-3 mb-0">
+                            <li>Click the install icon <i class="bi bi-laptop"></i> in the address bar.</li>
+                            <li>Or go to Menu <i class="bi bi-three-dots-vertical"></i> &gt; <strong>Install Okaro & Associates</strong>.</li>
+                        </ol>
+                    </div>
+
+                    <div class="d-block d-md-none">
+                        <div class="mb-3">
+                            <p class="mb-2 fw-bold"><i class="bi bi-android2 text-success me-1"></i> Android (Chrome):</p>
+                            <ol class="ps-3 mb-0 small">
+                                <li>Tap the Menu button <i class="bi bi-three-dots-vertical"></i> (top right).</li>
+                                <li>Tap <strong>Install App</strong> or <strong>Add to Home Screen</strong>.</li>
+                            </ol>
+                        </div>
+
+                        <div>
+                            <p class="mb-2 fw-bold"><i class="bi bi-apple text-dark me-1"></i> iOS (Safari):</p>
+                            <ol class="ps-3 mb-0 small">
+                                <li>Tap the <strong>Share</strong> button <i class="bi bi-box-arrow-up"></i> (bottom center).</li>
+                                <li>Scroll down and tap <strong>Add to Home Screen</strong> <i class="bi bi-plus-square"></i>.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
     <script>
         function toggleChatbot() {
             const window = document.getElementById('chatbot-window');
@@ -1507,7 +1845,7 @@
                 
                 // Use a relative path directly to avoid environment configuration issues
                 // Changed from /chatbot/send to /bot/message to avoid 403 blocks
-                const endpoint = '/bot/message';
+                const endpoint = @json(url('/bot/message'));
                 console.log('Chatbot sending to:', endpoint);
 
                 fetch(endpoint, {
@@ -1604,9 +1942,27 @@
             });
         }
 
+        function checkDisplayMode() {
+            let mode = 'Browser';
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                mode = 'Standalone';
+            } else if (navigator.standalone) {
+                mode = 'Standalone (iOS)';
+            }
+            return mode;
+        }
+        checkDisplayMode();
+
+        // Always show install button if not standalone (to allow manual install guide)
+        const pwaBtn = document.getElementById('pwa-install-button');
+        if (pwaBtn && !window.matchMedia('(display-mode: standalone)').matches && !navigator.standalone) {
+            pwaBtn.style.display = 'flex';
+        }
+
         window.addEventListener('beforeinstallprompt', function(e) {
             e.preventDefault();
             deferredInstallPrompt = e;
+            
             const btn = document.getElementById('pwa-install-button');
             if (btn && !window.matchMedia('(display-mode: standalone)').matches) {
                 btn.style.display = 'flex';
@@ -1623,17 +1979,59 @@
 
         function installPwaApp() {
             if (!deferredInstallPrompt) {
+                // If no deferred prompt, show manual instructions
+                const modalEl = document.getElementById('pwaInstallModal');
+                if (modalEl) {
+                    if (typeof bootstrap !== 'undefined') {
+                        const modal = new bootstrap.Modal(modalEl);
+                        modal.show();
+                    } else {
+                        // Fallback if Bootstrap isn't loaded
+                        alert('To install this app:\n\nAndroid: Tap the Menu (⋮) > Install App\niOS: Tap Share > Add to Home Screen');
+                    }
+                } else {
+                    alert('To install this app:\n\nAndroid: Tap the Menu (⋮) > Install App\niOS: Tap Share > Add to Home Screen');
+                }
                 return;
             }
+            
             deferredInstallPrompt.prompt();
             deferredInstallPrompt.userChoice.finally(function() {
-                const btn = document.getElementById('pwa-install-button');
-                if (btn) {
-                    btn.style.display = 'none';
-                }
                 deferredInstallPrompt = null;
             });
         }
+        window.installPwaApp = installPwaApp;
+
+        function handleLogout(event) {
+            event.preventDefault();
+            const form = event.target;
+            
+            // Clear service worker caches to ensure fresh content on next login
+            if ('serviceWorker' in navigator) {
+                caches.keys().then(function(names) {
+                    for (let name of names) {
+                        caches.delete(name);
+                    }
+                });
+            }
+
+            // Use fetch to handle logout without triggering iOS PWA new window/tab
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                },
+                body: new FormData(form)
+            }).then(() => {
+                window.location.href = @json(route('login'));
+            }).catch((error) => {
+                console.error('Logout failed:', error);
+                // Fallback to normal submit if fetch fails
+                form.submit();
+            });
+        }
+        window.handleLogout = handleLogout;
 
         (function() {
             let inactivityTime = function () {

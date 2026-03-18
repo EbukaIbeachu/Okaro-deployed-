@@ -2,14 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Models\Building;
-use App\Models\Tenant;
-use App\Models\Rent;
-use App\Models\Payment;
-use App\Models\Unit;
 use App\Models\Announcement;
+use App\Models\Building;
+use App\Models\Payment;
+use App\Models\Rent;
+use App\Models\Tenant;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
@@ -17,7 +15,7 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->isAdmin() || $user->isManager()) {
+        if ($user->isAdmin() || $user->isManager() || $user->isAccountant()) {
             return $this->adminDashboard();
         }
 
@@ -30,7 +28,7 @@ class DashboardController extends Controller
 
     private function adminDashboard()
     {
-        $user = \Illuminate\Support\Facades\Auth::user();
+        $user = Auth::user();
         $isManager = $user->isManager();
         $buildingIds = $isManager ? Building::where('manager_id', $user->id)->pluck('id') : null;
         $managerAnnouncements = collect();
@@ -74,8 +72,9 @@ class DashboardController extends Controller
         }
 
         // Monthly Revenue (Last 6 months)
+        $startMonth = now()->subMonths(5)->startOfMonth();
         $monthlyPaymentsQuery = Payment::where('status', 'COMPLETED')
-            ->where('payment_date', '>=', now()->subMonths(6)->startOfMonth());
+            ->where('payment_date', '>=', $startMonth);
         if ($isManager) {
             $monthlyPaymentsQuery->whereHas('rent.unit.building', function ($q) use ($buildingIds) {
                 $q->whereIn('id', $buildingIds);
@@ -87,7 +86,7 @@ class DashboardController extends Controller
             ->orderBy('month')
             ->pluck('total', 'month')
             ->all();
-        
+
         // Fill missing months with 0
         $chartData = [];
         $chartLabels = [];
@@ -95,11 +94,12 @@ class DashboardController extends Controller
             $date = now()->subMonths($i);
             $monthKey = $date->format('Y-m');
             $chartLabels[] = $date->format('M Y');
-            $chartData[] = $monthlyRevenue[$monthKey] ?? 0;
+            $chartData[] = (float) ($monthlyRevenue[$monthKey] ?? 0);
         }
 
         // Recent Payments
         $recentPaymentsQuery = Payment::with(['rent.tenant', 'rent.unit.building'])
+            ->where('status', 'COMPLETED')
             ->latest('payment_date')
             ->take(10);
         if ($isManager) {
@@ -122,7 +122,7 @@ class DashboardController extends Controller
         });
 
         // Pending Requests (Placeholder)
-        $requests = []; 
+        $requests = [];
 
         return view('admin.dashboard', compact('stats', 'recentPayments', 'overdueRents', 'requests', 'chartData', 'chartLabels', 'managerAnnouncements'));
     }
@@ -131,21 +131,21 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $tenant = $user->tenant;
-        
-        if (!$tenant) {
+
+        if (! $tenant) {
             // Check for existing tenant profile by email first (in case it wasn't linked during registration)
             if ($user->isTenant()) {
-                 $existingTenant = Tenant::where('email', $user->email)->first();
-                 
-                 if ($existingTenant) {
-                     $existingTenant->update(['user_id' => $user->id]);
-                     $tenant = $existingTenant;
-                 }
+                $existingTenant = Tenant::where('email', $user->email)->first();
+
+                if ($existingTenant) {
+                    $existingTenant->update(['user_id' => $user->id]);
+                    $tenant = $existingTenant;
+                }
             }
         }
 
         if ($tenant) {
-            $rent = $tenant->currentRent ?? $tenant->rents()->active()->latest()->first(); 
+            $rent = $tenant->currentRent ?? $tenant->rents()->active()->latest()->first();
             $payments = $tenant->payments()->latest('payment_date')->take(5)->get();
             $buildingId = $rent ? optional($rent->unit)->building_id : optional(optional($tenant->unit))->building_id;
             if ($buildingId) {
@@ -164,7 +164,7 @@ class DashboardController extends Controller
             $payments = collect([]);
             $announcements = collect([]);
         }
-        
+
         return view('tenant.dashboard', compact('tenant', 'rent', 'payments', 'announcements'));
     }
 }

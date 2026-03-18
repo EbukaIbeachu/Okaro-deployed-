@@ -57,4 +57,14 @@ class User extends Authenticatable
     {
         return $this->role && $this->role->name === 'tenant';
     }
+
+    public function isAccountant(): bool
+    {
+        return $this->role && strtolower($this->role->name) === 'accountant';
+    }
+
+    public function isReviewer(): bool
+    {
+        return $this->role && in_array(strtolower($this->role->name), ['reviewer', 'accountant']);
+    }
 }

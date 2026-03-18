@@ -83,7 +83,7 @@
                                 <td>{{ $payment->payment_date->format('M d, Y') }}</td>
                                 <td class="text-success fw-bold">₦{{ number_format($payment->amount, 2) }}</td>
                                 <td>{{ $payment->due_date ? $payment->due_date->format('M d, Y') : 'N/A' }}</td>
-                                <td>{{ $payment->method ?? 'N/A' }}</td>
+                                <td>{{ $payment->payment_method ?? 'N/A' }}</td>
                             </tr>
                             @empty
                             <tr>

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use App\Models\Role;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -14,9 +14,10 @@ class UserController extends Controller
     {
         $this->middleware(function ($request, $next) {
             $user = auth()->user();
-            if (!$user->isAdmin() && !$user->isManager()) {
+            if (! $user->isAdmin() && ! $user->isManager()) {
                 abort(403, 'Unauthorized action.');
             }
+
             return $next($request);
         });
     }
@@ -24,16 +25,17 @@ class UserController extends Controller
     public function index()
     {
         $query = User::with('role');
-        
+
         if (auth()->user()->isManager()) {
-            $query->whereHas('role', function($q) {
+            $query->whereHas('role', function ($q) {
                 $q->where('name', 'tenant');
             })->whereHas('tenant.unit.building', function ($q) {
                 $q->where('manager_id', auth()->id());
             });
         }
-        
+
         $users = $query->paginate(10);
+
         return view('users.index', compact('users'));
     }
 
@@ -43,6 +45,7 @@ class UserController extends Controller
         if (auth()->user()->isManager()) {
             $roles = $roles->where('name', 'tenant');
         }
+
         return view('users.create', compact('roles'));
     }
 
@@ -55,10 +58,10 @@ class UserController extends Controller
             'role_id' => 'required|exists:roles,id',
             'phone' => 'nullable|string|max:20',
         ]);
-        
+
         if (auth()->user()->isManager()) {
             $role = Role::find($validated['role_id']);
-            if (!$role || $role->name !== 'tenant') {
+            if (! $role || $role->name !== 'tenant') {
                 return back()->withInput()->withErrors(['role_id' => 'Managers can only create tenant users.']);
             }
         }
@@ -74,7 +77,7 @@ class UserController extends Controller
     public function show(User $user)
     {
         if (auth()->user()->isManager()) {
-            if (!$user->isTenant()) {
+            if (! $user->isTenant()) {
                 abort(403, 'Unauthorized action.');
             }
             $managerId = optional(optional(optional($user->tenant)->unit)->building)->manager_id;
@@ -82,13 +85,14 @@ class UserController extends Controller
                 abort(403, 'Unauthorized action.');
             }
         }
+
         return view('users.show', compact('user'));
     }
 
     public function edit(User $user)
     {
         if (auth()->user()->isManager()) {
-            if (!$user->isTenant()) {
+            if (! $user->isTenant()) {
                 abort(403, 'Unauthorized action.');
             }
             $managerId = optional(optional(optional($user->tenant)->unit)->building)->manager_id;
@@ -101,13 +105,14 @@ class UserController extends Controller
         if (auth()->user()->isManager()) {
             $roles = $roles->where('name', 'tenant');
         }
+
         return view('users.edit', compact('user', 'roles'));
     }
 
     public function update(Request $request, User $user)
     {
         if (auth()->user()->isManager()) {
-            if (!$user->isTenant()) {
+            if (! $user->isTenant()) {
                 abort(403, 'Unauthorized action.');
             }
             $managerId = optional(optional(optional($user->tenant)->unit)->building)->manager_id;
@@ -126,13 +131,13 @@ class UserController extends Controller
 
         if (auth()->user()->isManager()) {
             $role = Role::find($validated['role_id']);
-            if (!$role || $role->name !== 'tenant') {
-                 return back()->withInput()->withErrors(['role_id' => 'Managers can only assign tenant role.']);
+            if (! $role || $role->name !== 'tenant') {
+                return back()->withInput()->withErrors(['role_id' => 'Managers can only assign tenant role.']);
             }
         }
 
-        if (!$request->has('is_active')) {
-             $validated['is_active'] = false;
+        if (! $request->has('is_active')) {
+            $validated['is_active'] = false;
         }
 
         if ($request->filled('password')) {
@@ -150,7 +155,7 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         if (auth()->user()->isManager()) {
-            if (!$user->isTenant()) {
+            if (! $user->isTenant()) {
                 abort(403, 'Unauthorized action.');
             }
             $managerId = optional(optional(optional($user->tenant)->unit)->building)->manager_id;
@@ -162,10 +167,10 @@ class UserController extends Controller
         if ($user->id === auth()->id()) {
             return back()->with('error', 'You cannot delete yourself.');
         }
-        
+
         // Check dependencies (e.g., if user is a tenant with active rent)
         if ($user->tenant && $user->tenant->rents()->active()->exists()) {
-             return back()->with('error', 'Cannot delete user with active rental agreements.');
+            return back()->with('error', 'Cannot delete user with active rental agreements.');
         }
 
         $user->delete();
@@ -180,7 +185,7 @@ class UserController extends Controller
         }
 
         if (auth()->user()->isManager()) {
-            if (!$user->isTenant()) {
+            if (! $user->isTenant()) {
                 return back()->with('error', 'Managers can only approve/deactivate tenants.');
             }
             $managerId = optional(optional(optional($user->tenant)->unit)->building)->manager_id;
@@ -189,9 +194,10 @@ class UserController extends Controller
             }
         }
 
-        $user->update(['is_active' => !$user->is_active]);
-        
+        $user->update(['is_active' => ! $user->is_active]);
+
         $status = $user->is_active ? 'activated' : 'deactivated';
+
         return back()->with('success', "User has been $status.");
     }
 }

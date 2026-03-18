@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use App\Traits\RecordCreator;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\RecordCreator;
 
 class Building extends Model
 {
@@ -54,10 +54,15 @@ class Building extends Model
         return $this->hasManyThrough(Rent::class, Unit::class);
     }
 
+    public function expenses()
+    {
+        return $this->hasMany(LegacyExpense::class);
+    }
+
     public function getAddressAttribute()
     {
-        return $this->address_line1 . 
-               ($this->address_line2 ? ', ' . $this->address_line2 : '') . 
-               ', ' . $this->city . ', ' . $this->state;
+        return $this->address_line1.
+               ($this->address_line2 ? ', '.$this->address_line2 : '').
+               ', '.$this->city.', '.$this->state;
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -11,8 +12,7 @@ class ChatbotController extends Controller
     /**
      * Handle the incoming chat message.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function sendMessage(Request $request)
     {
@@ -22,7 +22,7 @@ class ChatbotController extends Controller
             ]);
 
             $message = $request->input('message');
-            
+
             // Default response if Ollama is not connected
             $response = "I'm currently unable to connect to the AI service. Please try again later.";
 
@@ -36,7 +36,7 @@ class ChatbotController extends Controller
                 $ollamaResponse = Http::timeout(5)->post($ollamaUrl, [
                     'model' => $model,
                     'prompt' => $message,
-                    'stream' => false
+                    'stream' => false,
                 ]);
 
                 if ($ollamaResponse->successful()) {
@@ -54,15 +54,15 @@ class ChatbotController extends Controller
 
             return response()->json([
                 'response' => $response,
-                'status' => 'success'
+                'status' => 'success',
             ]);
 
         } catch (\Throwable $e) {
             // Catch any other errors (validation, etc) and return a safe response
             // Log::error('Chatbot General Error: ' . $e->getMessage());
             return response()->json([
-                'response' => "I encountered a system error: " . $e->getMessage(),
-                'status' => 'error'
+                'response' => 'I encountered a system error: '.$e->getMessage(),
+                'status' => 'error',
             ]);
         }
     }
@@ -76,9 +76,9 @@ class ChatbotController extends Controller
     private function getFallbackResponse($message)
     {
         $lowerMsg = strtolower($message);
-        
+
         if (str_contains($lowerMsg, 'hello') || str_contains($lowerMsg, 'hi')) {
-            return "Hi there! Welcome to Okaro & Associates. How can I assist you with your property management needs today?";
+            return 'Hi there! Welcome to Okaro & Associates. How can I assist you with your property management needs today?';
         } elseif (str_contains($lowerMsg, 'rent') || str_contains($lowerMsg, 'pay')) {
             return "You can manage payments in the 'Payments' section of your dashboard. We accept various payment methods for your convenience.";
         } elseif (str_contains($lowerMsg, 'tenant')) {
@@ -86,9 +86,9 @@ class ChatbotController extends Controller
         } elseif (str_contains($lowerMsg, 'maintenance') || str_contains($lowerMsg, 'repair')) {
             return "Maintenance requests can be submitted through the 'Maintenance' tab. You can track the status of your requests there as well.";
         } elseif (str_contains($lowerMsg, 'contact') || str_contains($lowerMsg, 'support')) {
-            return "You can reach our support team at support@okaro.com or call us at (555) 123-4567 during business hours.";
+            return 'You can reach our support team at support@okaro.com or call us at (555) 123-4567 during business hours.';
         }
-        
+
         return "I'm currently running in offline mode. To enable full AI capabilities, please ensure the Ollama service is running and configured correctly.";
     }
 }

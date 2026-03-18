@@ -2,14 +2,14 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\View;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\URL;
 use App\Models\Announcement;
 use App\Models\Building;
 use App\Models\Tenant;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,6 +26,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Force HTTPS in production to match APP_URL scheme
         if ($this->app->environment('production')) {
             URL::forceScheme('https');
         }
@@ -34,6 +35,11 @@ class AppServiceProvider extends ServiceProvider
 
         View::composer('*', function ($view) {
             $count = 0;
+
+            if (! Schema::hasTable('announcements')) {
+                $view->with('globalAnnouncementCount', $count);
+                return;
+            }
 
             if (Auth::check()) {
                 $user = Auth::user();
@@ -52,7 +58,7 @@ class AppServiceProvider extends ServiceProvider
                     }
                 } elseif ($user->isTenant()) {
                     $tenant = $user->tenant;
-                    if (!$tenant) {
+                    if (! $tenant) {
                         $tenant = Tenant::where('email', $user->email)->first();
                     }
                     if ($tenant) {

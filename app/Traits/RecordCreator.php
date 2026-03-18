@@ -10,7 +10,7 @@ trait RecordCreator
     public static function bootRecordCreator()
     {
         static::creating(function ($model) {
-            if (Auth::check() && !$model->created_by) {
+            if (Auth::check() && ! $model->created_by) {
                 $model->created_by = Auth::id();
             }
         });

@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use App\Traits\RecordCreator;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\RecordCreator;
 
 class Payment extends Model
 {
@@ -41,12 +41,12 @@ class Payment extends Model
     public function scopeThisMonth($query)
     {
         return $query->whereMonth('payment_date', now()->month)
-                     ->whereYear('payment_date', now()->year);
+            ->whereYear('payment_date', now()->year);
     }
 
     public function scopeLastMonth($query)
     {
         return $query->whereMonth('payment_date', now()->subMonth()->month)
-                     ->whereYear('payment_date', now()->subMonth()->year);
+            ->whereYear('payment_date', now()->subMonth()->year);
     }
 }

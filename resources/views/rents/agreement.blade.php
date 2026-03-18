@@ -127,7 +127,7 @@
 
     <div class="section">
         1. <span class="bold">CONSIDERATION</span><br>
-        IN CONSIDERATION of the Rent sum of <span class="bold">₦{{ number_format($rent->annual_amount, 2) }} ({{ ucwords((new NumberFormatter('en', NumberFormatter::SPELLOUT))->format($rent->annual_amount)) }} Naira Only)</span> per annum paid by the Tenant to the Landlord (the receipt whereof the Landlord hereby acknowledges), the Landlord hereby lets the Demised Premises to the Tenant.
+        IN CONSIDERATION of the Rent sum of <span class="bold">₦{{ number_format($rent->annual_amount, 2) }} ({{ ucwords(\App\Support\NumberSpellout::spellout($rent->annual_amount)) }} Naira Only)</span> per annum paid by the Tenant to the Landlord (the receipt whereof the Landlord hereby acknowledges), the Landlord hereby lets the Demised Premises to the Tenant.
     </div>
 
     <div class="section">

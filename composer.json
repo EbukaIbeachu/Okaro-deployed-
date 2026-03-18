@@ -5,10 +5,12 @@
     "keywords": ["laravel", "framework", "property", "management"],
     "license": "MIT",
     "require": {
-        "php": "^8.1",
+        "php": "^8.2",
+        "barryvdh/laravel-dompdf": "^3.1",
         "guzzlehttp/guzzle": "^7.2",
         "laravel/framework": "^10.10",
         "laravel/sanctum": "^3.3",
+        "symfony/css-selector": "^6.4",
         "laravel/tinker": "^2.8"
     },
     "require-dev": {

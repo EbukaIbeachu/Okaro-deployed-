@@ -256,6 +256,16 @@
             padding: 0.75rem 1rem 0.5rem;
             font-weight: 700;
         }
+        @auth
+        @if(Auth::user()->isAdmin())
+        .sidebar .nav-link {
+            padding: 0.55rem 1.25rem;
+        }
+        .sidebar .nav-item-header {
+            padding: 0.5rem 1rem 0.25rem;
+        }
+        @endif
+        @endauth
 
         .sidebar-user {
             /* Sticky removed in favor of flexbox */
@@ -501,14 +511,14 @@
             }
         }
 
-        /* Premium Micro-Interaction Loader */
+        /* Page Loader Overlay */
         .okaro-loader-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(5px);
             z-index: 9999;
             display: flex;
@@ -516,7 +526,7 @@
             align-items: center;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.2s ease;
+            transition: opacity 0.3s ease;
         }
 
         .okaro-loader-overlay.visible {
@@ -524,152 +534,41 @@
             pointer-events: all;
         }
 
-        .okaro-loader-svg {
-            width: 50px;
-            height: 50px;
-            overflow: visible;
-        }
-
-        /* Compact Variant */
-        .okaro-loader-svg.compact {
-            width: 24px;
-            height: 24px;
-        }
-        .okaro-loader-svg.compact .loader-circle {
-            stroke-width: 5;
-        }
-
-        /* Inline Variant */
-        .okaro-loader-inline {
-            position: relative;
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            width: auto;
-            height: auto;
-            background: transparent;
-            backdrop-filter: none;
-            z-index: 1;
-            opacity: 1;
-            pointer-events: none;
-        }
-
-        .loader-circle {
-            fill: none;
-            stroke: url(#loader-gradient);
-            stroke-width: 4;
-            stroke-linecap: round;
-            transform-origin: center;
-            /* r=18, circumference ≈ 113.1 */
-            stroke-dasharray: 114; 
-            stroke-dashoffset: 114;
-            transform: rotate(-90deg);
-        }
-
-        .loader-check {
-            fill: none;
-            stroke: url(#loader-gradient);
-            stroke-width: 4;
-            stroke-linecap: round;
-            stroke-dasharray: 30;
-            stroke-dashoffset: 30;
-            opacity: 0;
-        }
-
-        .loader-error-x {
-            fill: none;
-            stroke: #dc3545;
-            stroke-width: 4;
-            stroke-linecap: round;
-            stroke-dasharray: 30;
-            stroke-dashoffset: 30;
-            opacity: 0;
-        }
-
-        /* State: Loading */
-        .state-loading .loader-circle {
-            animation: loader-spin 1s linear infinite;
-            stroke-dashoffset: 80; /* Keep a segment visible */
-        }
-
-        /* State: Completing */
-        .state-completing .loader-circle {
-            animation: loader-complete-ring 0.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-        }
-
-        .state-completing .loader-check {
-            opacity: 1;
-            animation: loader-draw-check 0.2s 0.15s ease-out forwards;
-        }
-
-        .state-completing .okaro-loader-svg {
-            animation: loader-pulse 0.2s 0.2s ease-out forwards;
-        }
-
-        /* State: Error */
-        .state-error .loader-circle {
-            stroke: #dc3545;
-            stroke-dashoffset: 0;
-            transition: stroke 0.2s, stroke-dashoffset 0.2s;
-        }
-
-        .state-error .loader-error-x {
-            opacity: 1;
-            animation: loader-draw-error 0.2s 0.1s ease-out forwards;
-        }
-
-        @keyframes loader-spin {
-            0% { transform: rotate(-90deg); stroke-dashoffset: 114; }
-            50% { stroke-dashoffset: 30; }
-            100% { transform: rotate(270deg); stroke-dashoffset: 114; }
-        }
-
-        @keyframes loader-complete-ring {
-            0% { stroke-dashoffset: 80; transform: rotate(-90deg); }
-            100% { stroke-dashoffset: 0; transform: rotate(-90deg); }
-        }
-
-        @keyframes loader-draw-check {
-            0% { stroke-dashoffset: 30; }
-            100% { stroke-dashoffset: 0; }
-        }
-
-        @keyframes loader-draw-error {
-            0% { stroke-dashoffset: 30; }
-            100% { stroke-dashoffset: 0; }
-        }
-
-        @keyframes loader-pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.08); }
-            100% { transform: scale(1); }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            .loader-circle, .loader-check, .okaro-loader-svg {
-                animation: none !important;
-                transition: none !important;
-            }
+        /* User Provided Loader (Scaled 2x) */
+        .loader { 
+           width: 30px; 
+           aspect-ratio: 1; 
+           position: relative; 
+        } 
+        .loader::before, 
+        .loader::after { 
+           content: ""; 
+           position: absolute; 
+           inset: 0; 
+           border-radius: 50%; 
+           background: var(--primary-color); 
+        } 
+        .loader::before { 
+           box-shadow: -52px 0 var(--primary-color); 
+           animation: l10-1 1.5s infinite linear; 
+        } 
+        .loader::after { 
+           transform: rotate(0deg) translateX(52px); 
+           animation: l10-2 1.5s infinite linear; 
+        } 
+        @keyframes l10-1 { 
+             50%{transform:translateX(52px)} 
+        } 
+        @keyframes l10-2 { 
+             100%{transform:rotate(-360deg) translateX(52px)} 
         }
     </style>
 </head>
 <body>
     <!-- Premium Loader HTML -->
     <div id="okaro-loader-overlay" class="okaro-loader-overlay" role="status" aria-live="polite" aria-busy="false">
-        <div class="okaro-loader-container">
-            <svg class="okaro-loader-svg" viewBox="0 0 44 44">
-            <defs>
-                <linearGradient id="loader-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stop-color="#6C3BFF" />
-                    <stop offset="100%" stop-color="#8A5CFF" />
-                </linearGradient>
-            </defs>
-            <circle class="loader-circle" cx="22" cy="22" r="18"></circle>
-                <path class="loader-check" d="M 14 22 L 20 28 L 30 16"></path>
-                <path class="loader-error-x" d="M 14 14 L 30 30 M 30 14 L 14 30"></path>
-            </svg>
-            <span class="visually-hidden">Loading...</span>
-        </div>
+        <div class="loader"></div>
+        <span class="visually-hidden">Loading...</span>
     </div>
 
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
@@ -774,6 +673,17 @@
                         @endif
                         @endif
 
+                        @if(auth()->user()->isAdmin() || auth()->user()->isAccountant())
+                        <li class="nav-item mt-2">
+                            <span class="px-3 text-uppercase small text-muted" style="font-size: 0.75rem;">Finance</span>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('accounting.*') ? 'active' : '' }}" href="{{ route('accounting.index') }}">
+                                <i class="bi bi-calculator me-2"></i> Accounting
+                            </a>
+                        </li>
+                        @endif
+
                         @if(Auth::user()->isTenant())
                         <li class="nav-item">
                             <a class="nav-link {{ request()->routeIs('maintenance.*') ? 'active' : '' }}" href="{{ route('maintenance.index') }}">
@@ -830,7 +740,7 @@
                 </div>
 
                 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom d-md-none">
-                    <h1 class="h2 text-primary fw-bold">{{ Auth::user()->isAdmin() ? 'Admin' : (Auth::user()->isManager() ? 'Manager' : 'Tenant') }}</h1>
+                    <h1 class="h2 text-primary fw-bold">{{ Auth::user()->isAdmin() ? 'Admin' : (Auth::user()->isAccountant() ? 'Accountant' : (Auth::user()->isManager() ? 'Manager' : 'Tenant')) }}</h1>
 
                     <div class="d-flex align-items-center ms-auto">
                         @if(isset($globalAnnouncementCount) && $globalAnnouncementCount > 0)
@@ -900,10 +810,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const syncEnabled = {{ Auth::check() ? 'true' : 'false' }};
-            let coins = 0;
-            if (!syncEnabled) {
-                coins = parseFloat(localStorage.getItem('okaro_coins') || '0');
-            }
+            let coins = parseFloat(localStorage.getItem('okaro_coins') || '0');
             let tapCount = parseInt(localStorage.getItem('okaro_taps') || '0');
             let sessionTapCount = 0;
             let streakCount = 0;
@@ -1609,12 +1516,11 @@
 
             show() {
                 if (this.isVisible || this.isPending) return;
-                this.reset();
                 this.isPending = true;
                 this.timer = setTimeout(() => {
                     this.isPending = false;
                     this.startTime = Date.now();
-                    this.overlay.classList.add('visible', 'state-loading');
+                    this.overlay.classList.add('visible');
                     this.overlay.setAttribute('aria-busy', 'true');
                     this.isVisible = true;
                 }, this.delay);
@@ -1624,11 +1530,12 @@
                 if (this.isPending) {
                     clearTimeout(this.timer);
                     this.isPending = false;
-                    this.reset();
                     return;
                 }
 
                 if (!this.isVisible) return;
+                
+                // Minimum display time check
                 const elapsed = Date.now() - this.startTime;
                 const remaining = Math.max(0, this.minDisplayTime - elapsed);
                 
@@ -1642,7 +1549,7 @@
                     setTimeout(() => {
                         this.overlay.classList.remove('visible');
                         this.overlay.style.opacity = '';
-                        this.reset();
+                        this.overlay.setAttribute('aria-busy', 'false');
                         this.isVisible = false;
                         resolve();
                     }, 200);
@@ -1650,57 +1557,60 @@
             }
 
             async complete() {
-                if (this.isPending) {
-                    clearTimeout(this.timer);
-                    this.isPending = false;
-                    this.reset();
-                    return;
-                }
-
-                if (!this.isVisible) return;
-                this.overlay.classList.remove('state-loading');
-                this.overlay.classList.add('state-completing');
-                
-                const hiddenText = this.overlay.querySelector('.visually-hidden');
-                if (hiddenText) hiddenText.textContent = 'Completed';
-                
-                // Wait for animation sequence
-                await new Promise(resolve => setTimeout(resolve, 450));
+                // For the new CSS loader, we just hide it on completion
                 await this.hide();
             }
 
             async error() {
-                if (this.isPending) {
-                    // Force show error even if pending? 
-                    // Usually errors should always be visible.
-                    clearTimeout(this.timer);
-                    this.isPending = false;
-                    this.startTime = Date.now();
-                    this.overlay.classList.add('visible');
-                    this.isVisible = true;
-                }
-
-                if (!this.isVisible) return;
-                this.overlay.classList.remove('state-loading');
-                this.overlay.classList.add('state-error');
-                
-                const hiddenText = this.overlay.querySelector('.visually-hidden');
-                if (hiddenText) hiddenText.textContent = 'Error occurred';
-
-                await new Promise(resolve => setTimeout(resolve, 1500));
+                // For the new CSS loader, we just hide it on error
                 await this.hide();
-            }
-
-            reset() {
-                this.overlay.classList.remove('state-loading', 'state-completing', 'state-error');
-                this.overlay.setAttribute('aria-busy', 'false');
-                const hiddenText = this.overlay.querySelector('.visually-hidden');
-                if (hiddenText) hiddenText.textContent = 'Loading...';
             }
         }
 
         // Global Instance
         window.Loader = new PremiumLoader();
+
+        // Mobile PWA & Navigation Loader Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            // Handle Link Clicks
+            document.addEventListener('click', (e) => {
+                const link = e.target.closest('a');
+                if (!link) return;
+
+                const href = link.getAttribute('href');
+                const target = link.getAttribute('target');
+
+                // Ignore if:
+                // 1. No href or empty
+                // 2. target is _blank
+                // 3. href is just # or javascript:
+                // 4. href is anchor on same page
+                // 5. control/meta/shift click (new tab)
+                if (!href || 
+                    href === '#' || 
+                    href.startsWith('javascript:') || 
+                    target === '_blank' || 
+                    e.ctrlKey || e.metaKey || e.shiftKey ||
+                    href.includes('#') && href.split('#')[0] === window.location.href.split('#')[0]
+                ) {
+                    return;
+                }
+
+                // Show loader
+                window.Loader.show();
+            });
+
+            // Handle Form Submissions
+            document.addEventListener('submit', (e) => {
+                const form = e.target;
+                if (form.target === '_blank') return;
+                
+                // Check if form has invalid fields (HTML5 validation)
+                if (!form.checkValidity()) return;
+
+                window.Loader.show();
+            });
+        });
     </script>
     @stack('scripts')
 
@@ -1849,7 +1759,7 @@
                 
                 // Use a relative path directly to avoid environment configuration issues
                 // Changed from /chatbot/send to /bot/message to avoid 403 blocks
-                const endpoint = '/bot/message';
+                const endpoint = @json(url('/bot/message'));
                 console.log('Chatbot sending to:', endpoint);
 
                 fetch(endpoint, {
@@ -2044,8 +1954,7 @@
                 },
                 body: new FormData(form)
             }).then(() => {
-                // Force navigation to root
-                window.location.href = '/';
+                window.location.href = @json(route('login'));
             }).catch((error) => {
                 console.error('Logout failed:', error);
                 // Fallback to normal submit if fetch fails

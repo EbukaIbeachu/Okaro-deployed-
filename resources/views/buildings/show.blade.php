@@ -189,28 +189,28 @@
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm h-100 border-start border-4 border-success">
+            <div class="card border-0 shadow-sm h-100 border-start border-4 border-danger">
                 <div class="card-body p-3 p-md-4">
-                    <h6 class="text-muted text-uppercase small fw-bold mb-1">Occupancy</h6>
-                    <h3 class="mb-0 fs-4 fs-md-3">
-                        {{ $stats['total_units'] > 0 ? round(($stats['occupied_units'] / $stats['total_units']) * 100) : 0 }}%
-                    </h3>
+                    <h6 class="text-muted text-uppercase small fw-bold mb-1">Total Expenses</h6>
+                    <h3 class="mb-0 fs-4 fs-md-3">₦{{ number_format($stats['total_expenses'] ?? 0, 2) }}</h3>
                 </div>
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm h-100 border-start border-4 border-warning">
+            <div class="card border-0 shadow-sm h-100 border-start border-4 border-success">
                 <div class="card-body p-3 p-md-4">
-                    <h6 class="text-muted text-uppercase small fw-bold mb-1">Maintenance</h6>
-                    <h3 class="mb-0 fs-4 fs-md-3">{{ $stats['maintenance_units'] }} Units</h3>
+                    <h6 class="text-muted text-uppercase small fw-bold mb-1">Net Income</h6>
+                    <h3 class="mb-0 fs-4 fs-md-3">₦{{ number_format(($stats['total_revenue'] ?? 0) - ($stats['total_expenses'] ?? 0), 2) }}</h3>
                 </div>
             </div>
         </div>
         <div class="col-6 col-md-3">
             <div class="card border-0 shadow-sm h-100 border-start border-4 border-info">
                 <div class="card-body p-3 p-md-4">
-                    <h6 class="text-muted text-uppercase small fw-bold mb-1">Available</h6>
-                    <h3 class="mb-0 fs-4 fs-md-3">{{ $stats['available_units'] }} Units</h3>
+                    <h6 class="text-muted text-uppercase small fw-bold mb-1">Occupancy</h6>
+                    <h3 class="mb-0 fs-4 fs-md-3">
+                        {{ $stats['total_units'] > 0 ? round(($stats['occupied_units'] / $stats['total_units']) * 100) : 0 }}%
+                    </h3>
                 </div>
             </div>
         </div>

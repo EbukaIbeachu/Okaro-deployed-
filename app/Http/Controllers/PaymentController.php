@@ -17,13 +17,14 @@ class PaymentController extends Controller
             });
         }
         $payments = $query->paginate(20);
+
         return view('payments.index', compact('payments'));
     }
 
     public function create(Request $request)
     {
         $rentId = $request->query('rent_id');
-        $rentsQuery = Rent::with(['tenant', 'unit.building', 'payments'])->whereHas('tenant', function($q) {
+        $rentsQuery = Rent::with(['tenant', 'unit.building', 'payments'])->whereHas('tenant', function ($q) {
             $q->where('active', true);
         });
         if (auth()->user()->isManager()) {
@@ -32,7 +33,7 @@ class PaymentController extends Controller
             });
         }
         $rents = $rentsQuery->get();
-        
+
         $selectedRent = $rentId ? Rent::with('payments')->find($rentId) : null;
 
         return view('payments.create', compact('rents', 'selectedRent'));
@@ -51,7 +52,7 @@ class PaymentController extends Controller
         // Automatically set due_date to match the end of the lease date
         $rent = Rent::find($validated['rent_id']);
         if (auth()->user()->isManager()) {
-            if (!$rent || !$rent->unit || !$rent->unit->building || $rent->unit->building->manager_id !== auth()->id()) {
+            if (! $rent || ! $rent->unit || ! $rent->unit->building || $rent->unit->building->manager_id !== auth()->id()) {
                 abort(403, 'Unauthorized action.');
             }
         }
@@ -62,18 +63,21 @@ class PaymentController extends Controller
         Payment::create($validated);
 
         $rent = Rent::with('unit')->find($validated['rent_id']);
+
         return redirect()->route('buildings.show', $rent->unit->building_id)->with('success', 'Payment recorded successfully.');
     }
 
     public function show(Payment $payment)
     {
         $payment->load('rent.tenant');
+
         return view('payments.show', compact('payment'));
     }
 
     public function edit(Payment $payment)
     {
         $rents = Rent::with('tenant')->get();
+
         return view('payments.edit', compact('payment', 'rents'));
     }
 
@@ -94,11 +98,12 @@ class PaymentController extends Controller
 
     public function destroy(Payment $payment)
     {
-        if (!auth()->user()->isAdmin()) {
+        if (! auth()->user()->isAdmin()) {
             return back()->with('error', 'Unauthorized action. Only admins can delete payments.');
         }
 
         $payment->delete();
+
         return redirect()->route('payments.index')->with('success', 'Payment deleted successfully.');
     }
 }

@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use App\Traits\RecordCreator;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\RecordCreator;
 
 class Rent extends Model
 {
@@ -58,10 +58,10 @@ class Rent extends Model
     {
         $start = $this->start_date;
         $end = $this->end_date ? $this->end_date : now();
-        
+
         // Ensure we don't calculate past today if the lease is still active
         $calculationEnd = $end->isFuture() ? now() : $end;
-        
+
         if ($start->isFuture()) {
             return -$this->total_paid;
         }
@@ -69,22 +69,24 @@ class Rent extends Model
         // Calculate years passed since start (Annual Rent logic)
         // If today is in the first year, 1 annual payment is due.
         // If today is in the second year, 2 annual payments are due.
-        
+
         $yearsOwed = $start->diffInYears($calculationEnd) + 1;
-        
+
         $expectedTotal = $yearsOwed * $this->annual_amount;
-        
+
         return $expectedTotal - $this->total_paid;
     }
 
     public function getNextDueDateAttribute()
     {
-        if ($this->annual_amount <= 0) return null;
-        
+        if ($this->annual_amount <= 0) {
+            return null;
+        }
+
         // Calculate how many years represent the total paid amount
         // We use floor because partial payment means the current year is not fully paid
         $yearsPaid = floor($this->total_paid / $this->annual_amount);
-        
+
         // The next due date is the start date plus the number of fully paid years
         return $this->start_date->copy()->addYears($yearsPaid);
     }

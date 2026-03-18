@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use App\Traits\RecordCreator;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\RecordCreator;
 
 class Unit extends Model
 {
@@ -47,6 +47,6 @@ class Unit extends Model
 
     public function getFullAddressAttribute(): string
     {
-        return "{$this->unit_number}" . ($this->floor ? " - Floor {$this->floor}" : '') . ", {$this->building->name}";
+        return "{$this->unit_number}".($this->floor ? " - Floor {$this->floor}" : '').", {$this->building->name}";
     }
 }

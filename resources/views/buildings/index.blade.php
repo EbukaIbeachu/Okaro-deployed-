@@ -15,6 +15,13 @@
 
 <div class="card shadow-sm">
     <div class="card-body">
+        <style>
+            @media (max-width: 767.98px) {
+                #buildingsTable .mobile-portrait-hide {
+                    display: none;
+                }
+            }
+        </style>
         <div class="mb-3">
             <input type="text" id="buildingSearch" class="form-control" placeholder="Search buildings...">
         </div>
@@ -24,12 +31,12 @@
                     <tr>
                         <th>Name</th>
                         <th>Address</th>
-                        <th>Location</th>
+                        <th class="mobile-portrait-hide">Location</th>
                         @if(Auth::user()->isAdmin())
-                        <th>Created By</th>
+                        <th class="mobile-portrait-hide">Created By</th>
                         @endif
-                        <th class="text-center">Units</th>
-                        <th class="text-end">Actions</th>
+                        <th class="text-center mobile-portrait-hide">Units</th>
+                        <th class="text-end mobile-portrait-hide">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -46,11 +53,11 @@
                                 <br><small class="text-muted">{{ $building->address_line2 }}</small>
                             @endif
                         </td>
-                        <td>
+                        <td class="mobile-portrait-hide">
                             {{ $building->city }}, {{ $building->state }} {{ $building->postal_code }}
                         </td>
                         @if(Auth::user()->isAdmin())
-                        <td>
+                        <td class="mobile-portrait-hide">
                             @if($building->creator)
                                 <div class="d-flex align-items-center">
                                     <div class="ms-2">
@@ -63,13 +70,13 @@
                             @endif
                         </td>
                         @endif
-                        <td class="text-center">
+                        <td class="text-center mobile-portrait-hide">
                             <span class="badge bg-secondary">{{ $building->total_units }} Total</span>
                             @if($building->active_units_count > 0)
                                 <span class="badge bg-success">{{ $building->active_units_count }} Occupied</span>
                             @endif
                         </td>
-                        <td class="text-end">
+                        <td class="text-end mobile-portrait-hide">
                             <div class="btn-group">
                                 <a href="{{ route('buildings.show', $building) }}" class="btn btn-sm btn-outline-secondary" title="View">
                                     <i class="bi bi-eye"></i>
@@ -88,8 +95,9 @@
                         </td>
                     </tr>
                     @empty
+                    @php($colspan = Auth::user()->isAdmin() ? 6 : 5)
                     <tr>
-                        <td colspan="5" class="text-center py-4 text-muted">
+                        <td colspan="{{ $colspan }}" class="text-center py-4 text-muted">
                             <i class="bi bi-building fs-1 d-block mb-2"></i>
                             No buildings found. Click "Add Building" to create one.
                         </td>
@@ -112,4 +120,5 @@
     });
 </script>
 @endpush
+
 @endsection

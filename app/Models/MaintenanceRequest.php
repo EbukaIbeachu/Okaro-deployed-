@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use App\Traits\RecordCreator;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\RecordCreator;
 
 class MaintenanceRequest extends Model
 {

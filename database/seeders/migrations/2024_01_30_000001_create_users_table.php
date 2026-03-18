@@ -15,6 +15,7 @@ return new class extends Migration
             $table->string('password');
             $table->unsignedTinyInteger('role_id');
             $table->boolean('is_active')->default(true);
+            $table->decimal('coin_balance', 12, 2)->default(0);
             $table->timestamps();
 
             $table->foreign('role_id')->references('id')->on('roles')->onUpdate('cascade')->onDelete('restrict');

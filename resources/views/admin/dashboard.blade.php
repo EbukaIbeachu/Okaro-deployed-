@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-2 pb-1 mb-2 mb-md-3 border-bottom">
-    <h1 class="h2 d-none d-md-block" id="dashboard-title">{{ Auth::user()->isManager() ? 'Manager Dashboard' : 'Admin Dashboard' }}</h1>
+    <h1 class="h2 d-none d-md-block" id="dashboard-title">{{ Auth::user()->isAccountant() ? 'Accountant Dashboard' : (Auth::user()->isManager() ? 'Manager Dashboard' : 'Admin Dashboard') }}</h1>
     <div class="ms-auto">
         <button class="btn btn-sm btn-outline-info" onclick="startTour()">
             <i class="bi bi-question-circle"></i> Help

@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Building;
-use App\Models\Unit;
 use App\Models\Announcement;
-use Illuminate\Support\Facades\DB;
+use App\Models\Building;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class BuildingController extends Controller
@@ -15,7 +15,7 @@ class BuildingController extends Controller
     {
         $this->middleware(function ($request, $next) {
             $user = auth()->user();
-            if (!$user->isAdmin() && !$user->isManager()) {
+            if (! $user->isAdmin() && ! $user->isManager()) {
                 if ($request->routeIs('buildings.show') || $request->routeIs('buildings.announcements.dismiss')) {
                     $building = $request->route('building');
                     $tenant = optional($user)->tenant;
@@ -26,6 +26,7 @@ class BuildingController extends Controller
                 }
                 abort(403, 'Unauthorized action.');
             }
+
             return $next($request);
         });
     }
@@ -37,6 +38,7 @@ class BuildingController extends Controller
         } else {
             $buildings = Building::with(['creator'])->withCount(['units', 'activeUnits'])->paginate(10);
         }
+
         return view('buildings.index', compact('buildings'));
     }
 
@@ -75,7 +77,13 @@ class BuildingController extends Controller
             abort(403);
         }
         $user = auth()->user();
-        $building->load(['units.currentTenant', 'tenants', 'rents.payments', 'rents.tenant', 'rents.unit', 'manager']);
+        $relations = ['units.currentTenant', 'tenants', 'rents.payments', 'rents.tenant', 'rents.unit', 'manager'];
+        $hasLegacyExpensesTable = Schema::hasTable('legacy_expenses');
+        if ($hasLegacyExpensesTable) {
+            $relations[] = 'expenses';
+        }
+        $building->load($relations);
+
         $announcements = Announcement::where('building_id', $building->id)
             ->whereDoesntHave('dismissedBy', function ($q) use ($user) {
                 $q->where('users.id', $user->id);
@@ -83,19 +91,20 @@ class BuildingController extends Controller
             ->latest()
             ->take(5)
             ->get();
-        
+
         // Calculate stats
         $occupied_count = $building->units->where('status', 'OCCUPIED')->count();
         $maintenance_count = $building->units->where('status', 'MAINTENANCE')->count();
-        
+
         $stats = [
-            'total_units' => $building->total_units, // Use capacity instead of created units count
+            'total_units' => $building->total_units,
             'created_units' => $building->units->count(),
             'occupied_units' => $occupied_count,
             'maintenance_units' => $maintenance_count,
             'available_units' => max(0, $building->total_units - $occupied_count - $maintenance_count),
             'total_tenants' => $building->tenants->count(),
-            'total_revenue' => $building->rents->flatMap->payments->sum('amount'),
+            'total_revenue' => (float) ($building->rents->flatMap->payments->sum('amount') ?? 0),
+            'total_expenses' => $hasLegacyExpensesTable ? (float) ($building->expenses->sum('amount') ?? 0) : 0,
         ];
 
         return view('buildings.show', compact('building', 'stats', 'announcements'));
@@ -106,9 +115,10 @@ class BuildingController extends Controller
         if (auth()->user()->isManager() && Schema::hasColumn('buildings', 'manager_id') && $building->manager_id !== auth()->id()) {
             abort(403);
         }
-        $managers = \App\Models\User::whereHas('role', function ($q) {
+        $managers = User::whereHas('role', function ($q) {
             $q->where('name', 'manager');
         })->where('is_active', true)->orderBy('name')->get();
+
         return view('buildings.edit', compact('building', 'managers'));
     }
 
@@ -133,7 +143,7 @@ class BuildingController extends Controller
         }
 
         if (auth()->user()->isAdmin()) {
-            if (!Schema::hasColumn('buildings', 'manager_id')) {
+            if (! Schema::hasColumn('buildings', 'manager_id')) {
                 unset($validated['manager_id']);
             }
             $building->update($validated);
@@ -147,7 +157,7 @@ class BuildingController extends Controller
 
     public function announce(Request $request, Building $building)
     {
-        if (!auth()->user()->isManager() && !auth()->user()->isAdmin()) {
+        if (! auth()->user()->isManager() && ! auth()->user()->isAdmin()) {
             abort(403);
         }
         if (auth()->user()->isManager() && Schema::hasColumn('buildings', 'manager_id') && $building->manager_id !== auth()->id()) {
@@ -163,6 +173,7 @@ class BuildingController extends Controller
             'title' => $validated['title'],
             'content' => $validated['content'],
         ]);
+
         return back()->with('success', 'Announcement posted.');
     }
 
@@ -193,7 +204,7 @@ class BuildingController extends Controller
             $allowed = true;
         }
 
-        if (!$allowed) {
+        if (! $allowed) {
             abort(403);
         }
 
@@ -201,19 +212,21 @@ class BuildingController extends Controller
             ['announcement_id' => $announcement->id, 'user_id' => $user->id],
             ['updated_at' => now(), 'created_at' => now()]
         );
+
         return back()->with('success', 'Announcement removed from your view.');
     }
 
     public function destroyAnnouncement(Building $building, Announcement $announcement)
     {
         $user = auth()->user();
-        if (!($user->isAdmin() || ($user->isManager() && \Illuminate\Support\Facades\Schema::hasColumn('buildings', 'manager_id') && $building->manager_id === $user->id))) {
+        if (! ($user->isAdmin() || ($user->isManager() && Schema::hasColumn('buildings', 'manager_id') && $building->manager_id === $user->id))) {
             abort(403);
         }
         if ($announcement->building_id !== $building->id) {
             abort(404);
         }
         $announcement->delete();
+
         return back()->with('success', 'Announcement deleted.');
     }
 

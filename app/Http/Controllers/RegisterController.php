@@ -2,13 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Models\User;
 use App\Models\Role;
 use App\Models\Tenant;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
 
 class RegisterController extends Controller
 {
@@ -27,7 +25,7 @@ class RegisterController extends Controller
         ]);
 
         $role = Role::where('name', 'manager')->first();
-        if (!$role) {
+        if (! $role) {
             return back()->withErrors(['role' => 'Manager role does not exist.']);
         }
 
@@ -58,7 +56,7 @@ class RegisterController extends Controller
         ]);
 
         $role = Role::where('name', 'tenant')->first();
-        if (!$role) {
+        if (! $role) {
             return back()->withErrors(['role' => 'Tenant role configuration error.']);
         }
 
@@ -97,8 +95,8 @@ class RegisterController extends Controller
         ]);
 
         $role = Role::where('name', 'admin')->first();
-        if (!$role) {
-             $role = Role::create(['name' => 'admin', 'description' => 'Administrator']);
+        if (! $role) {
+            $role = Role::create(['name' => 'admin', 'description' => 'Administrator']);
         }
 
         // Check if this is the first user, if so, make active. Otherwise, require approval?
@@ -110,7 +108,7 @@ class RegisterController extends Controller
             'password' => Hash::make($request->password),
             'role_id' => $role->id,
             'phone' => $request->phone,
-            'is_active' => true, 
+            'is_active' => true,
         ]);
 
         return redirect()->route('login')->with('success', 'Admin registration successful. You can now login.');

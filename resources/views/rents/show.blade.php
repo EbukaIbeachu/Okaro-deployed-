@@ -69,23 +69,9 @@
                             <th scope="row" class="text-muted">Annual Rent</th>
                             <td class="fs-5 fw-bold">₦{{ number_format($rent->annual_amount, 2) }}</td>
                         </tr>
-                        @php
-                            $n = $rent->due_day;
-                            $suffix = 'th';
-                            if (!in_array($n % 100, [11, 12, 13])) {
-                                $last = $n % 10;
-                                if ($last === 1) {
-                                    $suffix = 'st';
-                                } elseif ($last === 2) {
-                                    $suffix = 'nd';
-                                } elseif ($last === 3) {
-                                    $suffix = 'rd';
-                                }
-                            }
-                        @endphp
                         <tr>
                             <th scope="row" class="text-muted">Due Day</th>
-                            <td>{{ $n }}{{ $suffix }} of every month</td>
+                            <td>{{ $rent->end_date ? $rent->end_date->format('jS F, Y') : 'Indefinite' }}</td>
                         </tr>
                         <tr>
                             <th scope="row" class="text-muted">Lease Period</th>
