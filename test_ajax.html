@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot AJAX Test</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .success { color: green; }
+        .error { color: red; }
+        .log { background: #f0f0f0; padding: 10px; margin-top: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Chatbot Connection Test</h1>
+    <p>This page tests if your browser can connect to the Chatbot endpoint.</p>
+    
+    <button onclick="runTest()">Run Test</button>
+    
+    <div id="results" class="log">Ready to test...</div>
+
+    <script>
+        async function runTest() {
+            const results = document.getElementById('results');
+            results.innerHTML = 'Testing...<br>';
+            
+            const log = (msg, type = 'info') => {
+                results.innerHTML += `<div class="${type}">${msg}</div>`;
+            };
+
+            // 1. Test GET request (Health Check)
+            try {
+                log('1. Testing GET /bot/message (Health Check)...');
+                const response = await fetch('/bot/message');
+                const text = await response.text();
+                
+                if (response.ok) {
+                    log(`✅ GET Success: ${text.substring(0, 100)}`, 'success');
+                } else {
+                    log(`❌ GET Failed: Status ${response.status}`, 'error');
+                }
+            } catch (e) {
+                log(`❌ GET Error: ${e.message}`, 'error');
+            }
+
+            // 1.5 Test Direct PHP File (Verify Rewrite Engine isn't the only issue)
+            try {
+                log('<br>1.5. Testing GET /hello.php (Direct File Access)...');
+                const response = await fetch('/hello.php');
+                const text = await response.text();
+                
+                if (response.ok) {
+                    log(`✅ hello.php Success: ${text.substring(0, 100)}`, 'success');
+                } else {
+                    log(`❌ hello.php Failed: Status ${response.status}`, 'error');
+                }
+            } catch (e) {
+                log(`❌ hello.php Error: ${e.message}`, 'error');
+            }
+
+            // 1.6 Test Rewrite Engine
+            try {
+                log('<br>1.6. Testing GET /verify-rewrite (Rewrite Rule Check)...');
+                const response = await fetch('/verify-rewrite');
+                const text = await response.text();
+                
+                if (response.ok && text.includes('REWRITE_SUCCESS')) {
+                    log(`✅ Rewrite Engine Working: ${text.substring(0, 100)}`, 'success');
+                } else {
+                    log(`❌ Rewrite Engine Failed: Status ${response.status} (Response: ${text.substring(0, 50)})`, 'error');
+                }
+            } catch (e) {
+                log(`❌ Rewrite Engine Error: ${e.message}`, 'error');
+            }
+
+            // 1.7 Test Root Index
+            try {
+                log('<br>1.7. Testing GET / (Root Index Check)...');
+                const response = await fetch('/');
+                // Don't read text for root, it might be huge. Just check status.
+                
+                if (response.ok) {
+                    log(`✅ Root (/) Success: Status ${response.status}`, 'success');
+                } else {
+                    log(`❌ Root (/) Failed: Status ${response.status}`, 'error');
+                }
+            } catch (e) {
+                log(`❌ Root (/) Error: ${e.message}`, 'error');
+            }
+
+            // 2. Test POST request (Actual Chatbot)
+            try {
+                log('<br>2. Testing POST /bot/message (Chat Message)...');
+                
+                // Note: We are NOT sending CSRF token here to see if we get 419 (which means server is reachable)
+                // or if we get "Failed to fetch" (network error).
+                // If we disabled CSRF middleware for this route, it should work.
+                
+                const response = await fetch('/bot/message', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ message: 'Hello from Test' })
+                });
+                
+                const text = await response.text();
+                
+                if (response.ok) {
+                    log(`✅ POST Success: ${text.substring(0, 100)}`, 'success');
+                } else {
+                    if (response.status === 419) {
+                         log(`⚠️ POST 419 Page Expired: Server reached, but CSRF token missing (Expected if CSRF enabled).`, 'warning');
+                    } else {
+                         log(`❌ POST Failed: Status ${response.status} - ${text.substring(0, 100)}`, 'error');
+                    }
+                }
+            } catch (e) {
+                log(`❌ POST Network Error: ${e.message}`, 'error');
+                log('Suggestion: Check if your hosting provider blocks POST requests or if you have mixed content (HTTP vs HTTPS).', 'info');
+            }
+        }
+    </script>
+</body>
+</html>
